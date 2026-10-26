@@ -1,0 +1,8 @@
+{
+  "mean_latency_ms": 4.1597,
+  "median_latency_ms": 4.0783,
+  "p95_latency_ms": 4.6382,
+  "throughput_inferences_per_sec": 240.4,
+  "model_size_mb": 1.45,
+  "model_size_bytes": 1516389
+}

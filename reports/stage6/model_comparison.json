@@ -1,0 +1,64 @@
+{
+  "ranking": [
+    {
+      "model_name": "Linear SVM",
+      "validation_accuracy": 0.9773,
+      "macro_precision": 0.9771,
+      "macro_recall": 0.9761,
+      "macro_f1": 0.9763,
+      "weighted_f1": 0.9773,
+      "train_time_seconds": 0.83,
+      "inference_latency_ms_per_sample": 0.0349,
+      "model_size_kb": 742.8
+    },
+    {
+      "model_name": "SVM (RBF Kernel)",
+      "validation_accuracy": 0.9708,
+      "macro_precision": 0.971,
+      "macro_recall": 0.9705,
+      "macro_f1": 0.9703,
+      "weighted_f1": 0.9709,
+      "train_time_seconds": 1.59,
+      "inference_latency_ms_per_sample": 0.1596,
+      "model_size_kb": 1318.5
+    },
+    {
+      "model_name": "Extra Trees",
+      "validation_accuracy": 0.9664,
+      "macro_precision": 0.9656,
+      "macro_recall": 0.9661,
+      "macro_f1": 0.9655,
+      "weighted_f1": 0.9664,
+      "train_time_seconds": 0.18,
+      "inference_latency_ms_per_sample": 0.0286,
+      "model_size_kb": 9217.7
+    },
+    {
+      "model_name": "Random Forest",
+      "validation_accuracy": 0.9649,
+      "macro_precision": 0.9644,
+      "macro_recall": 0.9643,
+      "macro_f1": 0.9639,
+      "weighted_f1": 0.9649,
+      "train_time_seconds": 0.38,
+      "inference_latency_ms_per_sample": 0.0286,
+      "model_size_kb": 3833.1
+    },
+    {
+      "model_name": "Logistic Regression (Baseline)",
+      "validation_accuracy": 0.9547,
+      "macro_precision": 0.9544,
+      "macro_recall": 0.9528,
+      "macro_f1": 0.9529,
+      "weighted_f1": 0.9547,
+      "train_time_seconds": 0.25,
+      "inference_latency_ms_per_sample": 0.0006,
+      "model_size_kb": 11.8
+    }
+  ],
+  "primary_metric": "macro_f1",
+  "evaluated_at": "2026-09-18 01:09:57",
+  "train_samples": 5471,
+  "val_samples": 1368,
+  "test_samples": 1715
+}

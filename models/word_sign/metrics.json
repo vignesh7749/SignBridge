@@ -1,0 +1,11 @@
+{
+  "test_accuracy": 0.8546511627906976,
+  "macro_f1": 0.7909090786467887,
+  "mean_latency_ms": 0.5702201591519451,
+  "p95_latency_ms": 1.010924985166639,
+  "num_classes": 58,
+  "total_samples": 3440,
+  "train_samples": 2409,
+  "test_samples": 516,
+  "evaluated_at": 1793004201.3276422
+}

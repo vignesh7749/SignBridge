@@ -1,0 +1,105 @@
+{
+  "weakest_classes": [
+    {
+      "class": "P",
+      "f1": 0.9474
+    },
+    {
+      "class": "R",
+      "f1": 0.9552
+    },
+    {
+      "class": "Z",
+      "f1": 0.9559
+    },
+    {
+      "class": "K",
+      "f1": 0.9571
+    },
+    {
+      "class": "Q",
+      "f1": 0.96
+    }
+  ],
+  "strongest_classes": [
+    {
+      "class": "V",
+      "f1": 1.0
+    },
+    {
+      "class": "T",
+      "f1": 1.0
+    },
+    {
+      "class": "J",
+      "f1": 1.0
+    },
+    {
+      "class": "I",
+      "f1": 1.0
+    },
+    {
+      "class": "F",
+      "f1": 1.0
+    }
+  ],
+  "top_confused_pairs": [
+    {
+      "true_class": "Q",
+      "predicted_class": "G",
+      "error_count": 3
+    },
+    {
+      "true_class": "N",
+      "predicted_class": "M",
+      "error_count": 2
+    },
+    {
+      "true_class": "U",
+      "predicted_class": "R",
+      "error_count": 2
+    },
+    {
+      "true_class": "D",
+      "predicted_class": "O",
+      "error_count": 1
+    },
+    {
+      "true_class": "E",
+      "predicted_class": "M",
+      "error_count": 1
+    },
+    {
+      "true_class": "E",
+      "predicted_class": "P",
+      "error_count": 1
+    },
+    {
+      "true_class": "E",
+      "predicted_class": "S",
+      "error_count": 1
+    },
+    {
+      "true_class": "H",
+      "predicted_class": "K",
+      "error_count": 1
+    },
+    {
+      "true_class": "K",
+      "predicted_class": "P",
+      "error_count": 1
+    },
+    {
+      "true_class": "K",
+      "predicted_class": "Z",
+      "error_count": 1
+    }
+  ],
+  "confidence_distribution": {
+    "mean": 0.8708,
+    "median": 0.8884,
+    "std": 0.0765,
+    "min": 0.3656,
+    "max": 0.9995
+  }
+}

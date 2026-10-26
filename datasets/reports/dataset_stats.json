@@ -1,0 +1,265 @@
+{
+  "dataset_name": "ASL-Alphabet-Natural-RGB",
+  "sample_count": 8554,
+  "class_count": 26,
+  "class_balance": {
+    "min_class_samples": 254,
+    "max_class_samples": 360,
+    "mean_class_samples": 329.0,
+    "std_class_samples": 20.63,
+    "imbalance_ratio": 1.417
+  },
+  "splits": {
+    "test": 1715,
+    "train": 6839
+  },
+  "class_distribution": {
+    "A": {
+      "count": 354,
+      "percentage": 4.14
+    },
+    "B": {
+      "count": 337,
+      "percentage": 3.94
+    },
+    "C": {
+      "count": 326,
+      "percentage": 3.81
+    },
+    "D": {
+      "count": 322,
+      "percentage": 3.76
+    },
+    "E": {
+      "count": 336,
+      "percentage": 3.93
+    },
+    "F": {
+      "count": 335,
+      "percentage": 3.92
+    },
+    "G": {
+      "count": 324,
+      "percentage": 3.79
+    },
+    "H": {
+      "count": 331,
+      "percentage": 3.87
+    },
+    "I": {
+      "count": 316,
+      "percentage": 3.69
+    },
+    "J": {
+      "count": 337,
+      "percentage": 3.94
+    },
+    "K": {
+      "count": 342,
+      "percentage": 4.0
+    },
+    "L": {
+      "count": 360,
+      "percentage": 4.21
+    },
+    "M": {
+      "count": 345,
+      "percentage": 4.03
+    },
+    "N": {
+      "count": 339,
+      "percentage": 3.96
+    },
+    "O": {
+      "count": 290,
+      "percentage": 3.39
+    },
+    "P": {
+      "count": 321,
+      "percentage": 3.75
+    },
+    "Q": {
+      "count": 254,
+      "percentage": 2.97
+    },
+    "R": {
+      "count": 322,
+      "percentage": 3.76
+    },
+    "S": {
+      "count": 335,
+      "percentage": 3.92
+    },
+    "T": {
+      "count": 343,
+      "percentage": 4.01
+    },
+    "U": {
+      "count": 331,
+      "percentage": 3.87
+    },
+    "V": {
+      "count": 330,
+      "percentage": 3.86
+    },
+    "W": {
+      "count": 332,
+      "percentage": 3.88
+    },
+    "X": {
+      "count": 320,
+      "percentage": 3.74
+    },
+    "Y": {
+      "count": 356,
+      "percentage": 4.16
+    },
+    "Z": {
+      "count": 316,
+      "percentage": 3.69
+    }
+  },
+  "class_split_matrix": {
+    "A": {
+      "test": 69,
+      "train": 285
+    },
+    "B": {
+      "test": 62,
+      "train": 275
+    },
+    "C": {
+      "test": 61,
+      "train": 265
+    },
+    "D": {
+      "test": 64,
+      "train": 258
+    },
+    "E": {
+      "test": 70,
+      "train": 266
+    },
+    "F": {
+      "test": 68,
+      "train": 267
+    },
+    "G": {
+      "test": 64,
+      "train": 260
+    },
+    "H": {
+      "test": 70,
+      "train": 261
+    },
+    "I": {
+      "test": 69,
+      "train": 247
+    },
+    "J": {
+      "test": 66,
+      "train": 271
+    },
+    "K": {
+      "test": 69,
+      "train": 273
+    },
+    "L": {
+      "test": 67,
+      "train": 293
+    },
+    "M": {
+      "test": 67,
+      "train": 278
+    },
+    "N": {
+      "test": 65,
+      "train": 274
+    },
+    "O": {
+      "test": 57,
+      "train": 233
+    },
+    "P": {
+      "test": 65,
+      "train": 256
+    },
+    "Q": {
+      "test": 52,
+      "train": 202
+    },
+    "R": {
+      "test": 67,
+      "train": 255
+    },
+    "S": {
+      "test": 66,
+      "train": 269
+    },
+    "T": {
+      "test": 62,
+      "train": 281
+    },
+    "U": {
+      "test": 64,
+      "train": 267
+    },
+    "V": {
+      "test": 72,
+      "train": 258
+    },
+    "W": {
+      "test": 63,
+      "train": 269
+    },
+    "X": {
+      "test": 69,
+      "train": 251
+    },
+    "Y": {
+      "test": 80,
+      "train": 276
+    },
+    "Z": {
+      "test": 67,
+      "train": 249
+    }
+  },
+  "feature_slices": {
+    "coordinates": {
+      "mean": -0.2667556405067444,
+      "std": 0.6287693381309509,
+      "min": -3.2110822200775146,
+      "max": 3.3950114250183105
+    },
+    "wrist_tip_distances": {
+      "mean": 1.2409615516662598,
+      "std": 0.5354752540588379,
+      "min": 0.2700994610786438,
+      "max": 4.152254581451416
+    },
+    "inter_tip_distances": {
+      "mean": 0.7412703633308411,
+      "std": 0.48093777894973755,
+      "min": 0.0072299642488360405,
+      "max": 3.7721102237701416
+    },
+    "joint_angles": {
+      "mean": 2.3756613731384277,
+      "std": 0.6833407282829285,
+      "min": 0.019931359216570854,
+      "max": 3.140456438064575
+    },
+    "palm_aspect_ratio": {
+      "mean": 0.7820554971694946,
+      "std": 0.21361853182315826,
+      "min": 0.021394377574324608,
+      "max": 2.2787208557128906
+    }
+  },
+  "global_l2_norm": {
+    "mean": 11.7094,
+    "std": 1.2408
+  },
+  "computed_at": "2026-09-18 01:08:35"
+}

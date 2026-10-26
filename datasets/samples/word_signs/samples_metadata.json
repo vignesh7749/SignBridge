@@ -1,0 +1,66 @@
+{
+  "version": "2.0",
+  "description": "Curated demonstration sample videos for word-level ASL recognition evaluation.",
+  "samples": [
+    {
+      "file": "hello_sample.mp4",
+      "sign": "HELLO",
+      "source": "American Sign Language (ASL) Dataset (akasheroor/American-Sign-Language-Dataset)",
+      "license": "MIT License",
+      "source_url": "https://huggingface.co/datasets/akasheroor/American-Sign-Language-Dataset",
+      "description": "Greeting: open hand waves outward from temple",
+      "duration": 3.07,
+      "verified": true
+    },
+    {
+      "file": "help_sample.mp4",
+      "sign": "HELP",
+      "source": "American Sign Language (ASL) Dataset (akasheroor/American-Sign-Language-Dataset)",
+      "license": "MIT License",
+      "source_url": "https://huggingface.co/datasets/akasheroor/American-Sign-Language-Dataset",
+      "description": "Emergency/Assistance: thumbs-up on flat palm lifted upward",
+      "duration": 1.98,
+      "verified": true
+    },
+    {
+      "file": "yes_sample.mp4",
+      "sign": "YES",
+      "source": "American Sign Language (ASL) Dataset (akasheroor/American-Sign-Language-Dataset)",
+      "license": "MIT License",
+      "source_url": "https://huggingface.co/datasets/akasheroor/American-Sign-Language-Dataset",
+      "description": "Affirmation: S-fist nodding up and down",
+      "duration": 2.46,
+      "verified": true
+    },
+    {
+      "file": "no_sample.mp4",
+      "sign": "NO",
+      "source": "American Sign Language (ASL) Dataset (akasheroor/American-Sign-Language-Dataset)",
+      "license": "MIT License",
+      "source_url": "https://huggingface.co/datasets/akasheroor/American-Sign-Language-Dataset",
+      "description": "Negation: index and middle finger snap to thumb",
+      "duration": 2.87,
+      "verified": true
+    },
+    {
+      "file": "stop_sample.mp4",
+      "sign": "STOP",
+      "source": "American Sign Language (ASL) Dataset (akasheroor/American-Sign-Language-Dataset)",
+      "license": "MIT License",
+      "source_url": "https://huggingface.co/datasets/akasheroor/American-Sign-Language-Dataset",
+      "description": "Command: right hand chops down onto open left palm",
+      "duration": 2.43,
+      "verified": true
+    },
+    {
+      "file": "thank_you_sample.mp4",
+      "sign": "THANK YOU",
+      "source": "American Sign Language (ASL) Dataset (akasheroor/American-Sign-Language-Dataset)",
+      "license": "MIT License",
+      "source_url": "https://huggingface.co/datasets/akasheroor/American-Sign-Language-Dataset",
+      "description": "Politeness: flat hand touches chin and extends forward",
+      "duration": 1.53,
+      "verified": true
+    }
+  ]
+}

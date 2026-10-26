@@ -1,0 +1,16 @@
+{
+  "validation_macro_f1": 0.9712,
+  "validation_accuracy": 0.9715,
+  "test_accuracy": 0.9802,
+  "top3_accuracy": 0.9936,
+  "macro_precision": 0.9808,
+  "macro_recall": 0.9796,
+  "macro_f1": 0.98,
+  "weighted_f1": 0.9802,
+  "mean_latency_ms": 4.1597,
+  "median_latency_ms": 4.0783,
+  "p95_latency_ms": 4.6382,
+  "throughput_samples_per_sec": 240.4,
+  "confidence_mean": 0.8708,
+  "confidence_std": 0.0765
+}
