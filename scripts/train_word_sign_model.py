@@ -160,6 +160,7 @@ def extract_real_demo_samples(detector: MediaPipeHandDetector) -> dict[str, list
         "NO": "no.mp4",
         "STOP": "stop.mp4",
         "THANK YOU": "thank_you.mp4",
+        "GOODBYE": "goodbye.mp4",
     }
 
     demo_samples: dict[str, list[np.ndarray]] = {}

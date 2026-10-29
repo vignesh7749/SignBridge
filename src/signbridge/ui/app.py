@@ -266,6 +266,89 @@ class SignBridgeApp:
         elif btn_id.startswith("btn_sample_"):
             sign_key = btn_id.replace("btn_sample_", "")
             self._load_sample_video(sign_key)
+        elif btn_id.startswith("btn_play_sign_"):
+            sign_id = btn_id.replace("btn_play_sign_", "")
+            self._load_catalog_sign(sign_id)
+        elif btn_id.startswith("btn_next_card_"):
+            sign_id = btn_id.replace("btn_next_card_", "")
+            from signbridge.video.catalog import SignLanguageCatalog
+            cat = SignLanguageCatalog()
+            active_cat = self.ui_state.demo_category
+            next_sign = cat.get_next_sign(sign_id, category=active_cat, available_only=False)
+            if next_sign:
+                matching = cat.list_signs(category=active_cat, query=self.ui_state.demo_search_query)
+                next_idx = next((i for i, s in enumerate(matching) if s.id == next_sign.id), -1)
+                if next_idx != -1:
+                    self.ui_state.demo_page = (next_idx // 5) + 1
+                msg = f"Next sign: '{next_sign.name}'"
+                if not next_sign.available:
+                    msg += " (Demo video unavailable)"
+                self.ui_state.set_toast(msg, level="info")
+        elif btn_id == "btn_demo_next_sign":
+            from signbridge.video.catalog import SignLanguageCatalog
+            cat = SignLanguageCatalog()
+            cur_id = self.ui_state.demo_selected_sign_id or ""
+            active_cat = self.ui_state.demo_category
+            next_s = cat.get_next_sign(cur_id, category=active_cat, available_only=False)
+            if next_s:
+                self.ui_state.demo_selected_sign_id = next_s.id
+                self.ui_state.demo_view_mode = "DETAIL"
+                matching = cat.list_signs(category=active_cat, query=self.ui_state.demo_search_query)
+                next_idx = next((i for i, s in enumerate(matching) if s.id == next_s.id), -1)
+                if next_idx != -1:
+                    self.ui_state.demo_page = (next_idx // 5) + 1
+                msg = f"Sign: '{next_s.name}' ({next_s.category})"
+                if not next_s.available:
+                    msg += " — Demo video unavailable"
+                self.ui_state.set_toast(msg, level="info")
+        elif btn_id == "btn_demo_prev_sign":
+            from signbridge.video.catalog import SignLanguageCatalog
+            cat = SignLanguageCatalog()
+            cur_id = self.ui_state.demo_selected_sign_id or ""
+            active_cat = self.ui_state.demo_category
+            prev_s = cat.get_prev_sign(cur_id, category=active_cat, available_only=False)
+            if prev_s:
+                self.ui_state.demo_selected_sign_id = prev_s.id
+                self.ui_state.demo_view_mode = "DETAIL"
+                matching = cat.list_signs(category=active_cat, query=self.ui_state.demo_search_query)
+                prev_idx = next((i for i, s in enumerate(matching) if s.id == prev_s.id), -1)
+                if prev_idx != -1:
+                    self.ui_state.demo_page = (prev_idx // 5) + 1
+                msg = f"Sign: '{prev_s.name}' ({prev_s.category})"
+                if not prev_s.available:
+                    msg += " — Demo video unavailable"
+                self.ui_state.set_toast(msg, level="info")
+        elif btn_id.startswith("btn_detail_sign_"):
+            sign_id = btn_id.replace("btn_detail_sign_", "")
+            self.ui_state.demo_selected_sign_id = sign_id
+            self.ui_state.demo_view_mode = "DETAIL"
+        elif btn_id == "btn_demo_back_list":
+            self.ui_state.demo_view_mode = "LIST"
+        elif btn_id.startswith("btn_cat_"):
+            cat_map = {
+                "btn_cat_all": "All Signs",
+                "btn_cat_alpha": "Alphabet",
+                "btn_cat_nums": "Numbers",
+                "btn_cat_greetings": "Greetings",
+                "btn_cat_common": "Common Words",
+                "btn_cat_daily": "Daily Communication",
+                "btn_cat_phrases": "Common Phrases",
+            }
+            target_cat = cat_map.get(btn_id, "All Signs")
+            self.ui_state.demo_category = target_cat
+            self.ui_state.demo_page = 1
+            self.ui_state.demo_view_mode = "LIST"
+            self.ui_state.set_toast(f"Category: {target_cat.upper()}", level="info")
+        elif btn_id == "btn_page_prev":
+            self.ui_state.demo_page = max(1, self.ui_state.demo_page - 1)
+        elif btn_id == "btn_page_next":
+            self.ui_state.demo_page += 1
+        elif btn_id == "btn_search_clear":
+            self.ui_state.demo_search_query = ""
+            self.ui_state.demo_category = "All Signs"
+            self.ui_state.demo_page = 1
+            self.ui_state.demo_view_mode = "LIST"
+            self.ui_state.set_toast("Reset filters to all signs", level="info")
         elif btn_id in ("btn_source_camera", "btn_src_camera"):
             self._switch_to_camera()
         elif btn_id == "btn_src_demo":
@@ -274,6 +357,10 @@ class SignBridgeApp:
             self._handle_upload_video()
 
         # Video Transport Controls
+        elif btn_id == "btn_vid_prev_sample":
+            self._navigate_sample_video(-1)
+        elif btn_id == "btn_vid_next_sample":
+            self._navigate_sample_video(1)
         elif btn_id == "btn_vid_play":
             from signbridge.video.reader import VideoFileReader
             if isinstance(self.pipeline.camera, VideoFileReader):
@@ -408,7 +495,7 @@ class SignBridgeApp:
         if sample and sample.full_path:
             try:
                 reader = VideoFileReader(sample.full_path, loop=True, realtime_pacing=True)
-                self.pipeline.switch_to_demo_video(reader)
+                self.pipeline.switch_to_demo_video(reader, sign_label=sample.sign)
                 self._last_valid_frame = None
                 self.ui_state.active_input_source = "DEMO"
                 self.ui_state.selected_sample_video = sample.sign
@@ -419,6 +506,87 @@ class SignBridgeApp:
                 self.ui_state.set_toast(f"Error loading sample: {e}", level="error")
         else:
             self.ui_state.set_toast(f"Sample '{sign_key}' not found", level="warning")
+
+    def _load_catalog_sign(self, sign_id: str) -> None:
+        """Loads and streams a catalog sign or provides reference guidance if video is pending."""
+        from signbridge.video.catalog import SignLanguageCatalog
+        from signbridge.video.sample_manager import SampleVideoManager
+        from signbridge.video.reader import VideoFileReader
+
+        cat = SignLanguageCatalog()
+        entry = cat.get_sign_by_id(sign_id)
+        if not entry:
+            self.ui_state.set_toast(f"Catalog sign '{sign_id}' not found", level="warning")
+            return
+
+        if not entry.available or not entry.video:
+            self.ui_state.demo_selected_sign_id = entry.id
+            self.ui_state.demo_view_mode = "DETAIL"
+            self.ui_state.set_toast(
+                f"Demo video unavailable for '{entry.name}'. Showing reference mechanics guide.",
+                level="warning",
+                duration=3.5,
+            )
+            return
+
+        mgr = SampleVideoManager()
+        sample = mgr.get_sample_by_id(entry.id) or mgr.get_sample_by_sign(entry.name)
+        if sample and sample.full_path:
+            full_path_str = sample.full_path
+            sign_name = sample.sign
+            filename = sample.filename
+        else:
+            vpath = entry.get_full_video_path(cat.project_root)
+            if vpath and vpath.exists():
+                full_path_str = str(vpath)
+                sign_name = entry.name.upper()
+                filename = vpath.name
+            else:
+                full_path_str = None
+                sign_name = entry.name.upper()
+                filename = ""
+
+        if full_path_str:
+            try:
+                reader = VideoFileReader(full_path_str, loop=True, realtime_pacing=True)
+                self.pipeline.switch_to_demo_video(reader, sign_label=sign_name)
+                self._last_valid_frame = None
+                self.ui_state.active_input_source = "DEMO"
+                self.ui_state.selected_sample_video = sign_name
+                self.ui_state.video_filename = filename
+                self.ui_state.demo_category = entry.category
+                self.ui_state.close_modal()
+                self.ui_state.set_toast(f"Playing Demo Video: {sign_name} ({entry.category})", level="success")
+            except Exception as e:
+                self.ui_state.set_toast(f"Error loading demo video: {e}", level="error")
+        else:
+            self.ui_state.set_toast(f"Video file for '{entry.name}' unavailable", level="warning")
+
+    def _navigate_sample_video(self, direction: int) -> None:
+        """Navigates to the next (+1) or previous (-1) playable demonstration video strictly within the active category."""
+        from signbridge.video.catalog import SignLanguageCatalog
+
+        cat = SignLanguageCatalog()
+        cur_sign_name = (self.ui_state.selected_sample_video or "HELLO").upper()
+        entry = cat.get_sign_by_name(cur_sign_name)
+        cur_id = entry.id if entry else "asl_word_hello"
+        active_cat = entry.category if entry else (
+            self.ui_state.demo_category if self.ui_state.demo_category not in ("All Signs", "ALL SIGNS") else None
+        )
+        if direction > 0:
+            next_entry = cat.get_next_sign(cur_id, category=active_cat, available_only=True)
+        else:
+            next_entry = cat.get_prev_sign(cur_id, category=active_cat, available_only=True)
+        if next_entry:
+            if next_entry.id == cur_id:
+                self.ui_state.set_toast(
+                    f"'{entry.name if entry else cur_sign_name}' is the only playable video in {active_cat or 'category'}",
+                    level="info",
+                )
+            else:
+                self._load_catalog_sign(next_entry.id)
+        else:
+            self.ui_state.set_toast(f"No playable demonstration videos in {active_cat or 'category'}", level="warning")
 
     def _switch_to_camera(self) -> None:
         """Restores live webcam as the pipeline input source."""
@@ -473,7 +641,7 @@ class SignBridgeApp:
             user_samples = mgr.list_user_samples()
             if user_samples and user_samples[0].full_path:
                 reader = VideoFileReader(user_samples[0].full_path, loop=True, realtime_pacing=True)
-                self.pipeline.switch_to_demo_video(reader)
+                self.pipeline.switch_to_demo_video(reader, sign_label=user_samples[0].sign)
                 self._last_valid_frame = None
                 self.ui_state.active_input_source = "UPLOAD"
                 self.ui_state.selected_sample_video = f"User: {user_samples[0].sign}"
@@ -493,7 +661,7 @@ class SignBridgeApp:
             target = matching[-1] if matching else (user_samples[-1] if user_samples else None)
             if target and target.full_path:
                 reader = VideoFileReader(target.full_path, loop=True, realtime_pacing=True)
-                self.pipeline.switch_to_demo_video(reader)
+                self.pipeline.switch_to_demo_video(reader, sign_label=target.sign)
                 self._last_valid_frame = None
                 self.ui_state.active_input_source = "UPLOAD"
                 self.ui_state.selected_sample_video = f"User: {target.sign}"
@@ -524,42 +692,91 @@ class SignBridgeApp:
                 return True
             return True
 
-        # ESC Key (27): Closes modal if open, otherwise exits app
-        if key == 27:
-            if self.ui_state.active_modal != ActiveModal.NONE:
+        # 1. Video Demo Hub Modal Active Handling
+        if self.ui_state.active_modal == ActiveModal.VIDEO_DEMO:
+            if key == 27:  # ESC
+                if self.ui_state.demo_view_mode == "DETAIL":
+                    self.ui_state.demo_view_mode = "LIST"
+                    return True
                 self.ui_state.close_modal()
                 return True
-            return False
+            elif key in (ord(","), ord("<")):
+                self.ui_state.demo_page = max(1, self.ui_state.demo_page - 1)
+                return True
+            elif key in (ord("."), ord(">")):
+                self.ui_state.demo_page += 1
+                return True
+            elif key in (13, 10):  # ENTER
+                if self.ui_state.demo_view_mode == "DETAIL" and self.ui_state.demo_selected_sign_id:
+                    self._load_catalog_sign(self.ui_state.demo_selected_sign_id)
+                else:
+                    self.ui_state.close_modal()
+                return True
 
-        # Quit on 'Q'
-        if key in (ord("q"), ord("Q")):
-            return False
-
-        # If a modal is open, ENTER closes it
+        # 2. General Active Modal Handling (ESC or ENTER closes active modal)
         if self.ui_state.active_modal != ActiveModal.NONE:
-            if key in (13, 10):  # ENTER
+            if key in (27, 13, 10):
                 self.ui_state.close_modal()
             return True
 
-        # Mode Selection Key Bindings
-        if key == ord("1"):
+        # 3. Video Player Context Key Handling (ENTER triggers recognition)
+        is_video_mode = self.ui_state.active_input_source in ("DEMO", "UPLOAD")
+        if is_video_mode and key in (13, 10):
+            self._run_video_recognition()
+            return True
+
+        # 4. Authoritative Workspace & Global Shortcut Dispatch via Registry
+        from signbridge.ui.shortcuts import SHORTCUT_REGISTRY
+        action = SHORTCUT_REGISTRY.match_key(key, context="workspace")
+        if not action:
+            return True
+
+        act = action.action_id
+        if act in ("quit_app", "close_or_exit"):
+            return False
+        elif act == "commit_word":
+            res = self.pipeline.space()
+            self.ui_state.set_toast(f"Word break: '{res.sentence_text}'")
+        elif act == "delete_letter":
+            res = self.pipeline.backspace()
+            self.ui_state.set_toast(f"Deleted: '{res.current_word}'")
+        elif act == "clear_sentence":
+            self.pipeline.clear_sentence()
+            self.ui_state.set_toast("Cleared sentence")
+        elif act == "undo_action":
+            self.pipeline.undo()
+            self.ui_state.set_toast("Undo executed")
+        elif act == "reset_all":
+            self.pipeline.reset()
+            self.ui_state.set_toast("Reset all buffers", level="warning")
+        elif act == "speak_sentence":
+            ok = self.pipeline.speak_current_sentence()
+            if ok:
+                self.ui_state.set_toast("Speaking sign / sentence...", level="success")
+            else:
+                self.ui_state.set_toast("No sign or sentence to speak", level="warning")
+        elif act == "stop_speech":
+            self.pipeline.stop_speech()
+            self.ui_state.set_toast("Speech stopped")
+        elif act == "toggle_voice":
+            v_en = self.pipeline.toggle_voice()
+            self.ui_state.set_toast(f"Voice: {'ENABLED' if v_en else 'MUTED'}")
+        elif act == "mode_alpha":
             self.pipeline.set_recognition_mode("ALPHABET")
             self.ui_state.set_toast("Mode: ALPHABET FINGERSPELLING")
-        elif key == ord("2"):
+        elif act == "mode_words":
             self.pipeline.set_recognition_mode("WORD_SIGNS")
             self.ui_state.set_toast("Mode: WORD-LEVEL SIGNS")
-        elif key == ord("3"):
+        elif act == "mode_auto":
             self.pipeline.set_recognition_mode("AUTO")
             self.ui_state.set_toast("Mode: AUTO (Hybrid Recognition)")
-        elif key in (ord("v"), ord("V")):
+        elif act == "open_demo_hub":
             self.ui_state.open_modal(ActiveModal.VIDEO_DEMO)
-
-        # Normal Workspace Key Bindings
-        elif key in (ord("o"), ord("O")):  # Settings
+        elif act == "open_settings":
             self.ui_state.open_modal(ActiveModal.SETTINGS)
-        elif key in (ord("h"), ord("H")):  # Help
+        elif act == "open_help":
             self.ui_state.open_modal(ActiveModal.HELP)
-        elif key in (ord("d"), ord("D")):  # Demo Mode Toggle
+        elif act == "toggle_demo_driver":
             self.ui_state.demo_mode = not self.ui_state.demo_mode
             if self.ui_state.demo_mode:
                 self.demo_driver.start()
@@ -567,17 +784,17 @@ class SignBridgeApp:
             else:
                 self.demo_driver.stop()
                 self.ui_state.set_toast("Demo Mode: STOPPED (Returned to Live Camera)", level="info")
-        elif key in (ord("g"), ord("G")):  # Diagnostics HUD Toggle
+        elif act == "toggle_diagnostics":
             self.ui_state.show_diagnostics = not self.ui_state.show_diagnostics
             self.ui_state.set_toast(f"Diagnostics HUD: {'ON' if self.ui_state.show_diagnostics else 'OFF'}")
-        elif key in (ord("p"), ord("P")):  # Pause / Resume
+        elif act == "toggle_pause":
             if self.pipeline.is_paused:
                 self.pipeline.resume()
                 self.ui_state.set_toast("Resumed")
             else:
                 self.pipeline.pause()
                 self.ui_state.set_toast("Paused")
-        elif key in (ord("m"), ord("M")):  # Mirror
+        elif act == "toggle_mirror":
             cfg = self.pipeline.camera.config
             self.pipeline.camera.config = CameraConfig(
                 device_index=cfg.device_index,
@@ -587,33 +804,8 @@ class SignBridgeApp:
                 flip_horizontal=not cfg.flip_horizontal,
             )
             self.ui_state.set_toast(f"Mirror mode: {self.pipeline.camera.config.flip_horizontal}")
-        elif key in (ord("t"), ord("T")):  # Toggle Voice
-            v_en = self.pipeline.toggle_voice()
-            self.ui_state.set_toast(f"Voice: {'ENABLED' if v_en else 'MUTED'}")
-        elif key in (ord("s"), ord("S"), ord("k"), ord("K")):  # Speak sign / sentence
-            ok = self.pipeline.speak_current_sentence()
-            if ok:
-                self.ui_state.set_toast("Speaking sign / sentence...", level="success")
-            else:
-                self.ui_state.set_toast("No sign or sentence to speak", level="warning")
-        elif key in (ord("x"), ord("X")):  # Stop Speech
-            self.pipeline.stop_speech()
-            self.ui_state.set_toast("Speech stopped")
-        elif key == ord(" "):  # Word boundary (SPACE)
-            res = self.pipeline.space()
-            self.ui_state.set_toast(f"Word break: '{res.sentence_text}'")
-        elif key in (8, 127):  # Backspace
-            res = self.pipeline.backspace()
-            self.ui_state.set_toast(f"Deleted: '{res.current_word}'")
-        elif key in (ord("c"), ord("C")):  # Clear
-            self.pipeline.clear_sentence()
-            self.ui_state.set_toast("Cleared sentence")
-        elif key in (ord("u"), ord("U")):  # Undo
-            self.pipeline.undo()
-            self.ui_state.set_toast("Undo executed")
-        elif key in (ord("r"), ord("R")):  # Reset
-            self.pipeline.reset()
-            self.ui_state.set_toast("Reset all buffers", level="warning")
+
+        return True
 
         return True
 

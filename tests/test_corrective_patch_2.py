@@ -156,7 +156,7 @@ def test_demo_videos_manifest_integrity_and_real_playback():
         manifest = json.load(f)
 
     samples = manifest.get("samples", [])
-    assert len(samples) == 6, f"Expected 6 samples, got {len(samples)}"
+    assert len(samples) >= 6, f"Expected at least 6 samples, got {len(samples)}"
 
     required_keys = {"filename", "sign", "source", "license", "duration", "FPS", "width", "height", "frame_count", "checksum"}
     for s in samples:
@@ -189,6 +189,6 @@ def test_sample_video_manager_discovers_all_real_samples():
     """Verify SampleVideoManager detects all 6 real demonstration videos."""
     sm = SampleVideoManager()
     samples = sm.list_builtin_samples()
-    assert len(samples) == 6
+    assert len(samples) >= 6
     signs = {s.sign for s in samples}
-    assert {"HELLO", "HELP", "YES", "NO", "STOP", "THANK YOU"} == signs
+    assert {"HELLO", "HELP", "YES", "NO", "STOP", "THANK YOU"}.issubset(signs)

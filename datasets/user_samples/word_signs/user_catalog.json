@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "user_videos": [
+    {
+      "file": "1793170658_open_hand_finger_wave_demo.mp4",
+      "sign": "CUSTOM",
+      "original_path": "C:\\Users\\VIGNESH\\OneDrive\\Desktop\\open_hand_finger_wave_demo.mp4",
+      "added_timestamp": 1793170658.781227,
+      "duration_seconds": 8.0
+    },
+    {
+      "file": "1793170917_Screen Recording 2026-10-28 123125.mp4",
+      "sign": "CUSTOM",
+      "original_path": "C:\\Users\\VIGNESH\\Videos\\Screen Recordings\\Screen Recording 2026-10-28 123125.mp4",
+      "added_timestamp": 1793170917.6813564,
+      "duration_seconds": 5.166666666666667
+    },
+    {
+      "file": "1793172424_goodbye.mp4",
+      "sign": "CUSTOM",
+      "original_path": "C:\\Users\\VIGNESH\\Downloads\\goodbye.mp4",
+      "added_timestamp": 1793172424.3300862,
+      "duration_seconds": 3.1364698031364697
+    }
+  ]
+}

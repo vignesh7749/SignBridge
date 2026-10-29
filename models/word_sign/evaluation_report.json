@@ -3,12 +3,12 @@
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 8.0
+    "support": 7.0
   },
   "BAD": {
-    "precision": 0.6,
-    "recall": 0.375,
-    "f1-score": 0.46153846153846156,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1-score": 0.0,
     "support": 8.0
   },
   "BLACK": {
@@ -36,16 +36,16 @@
     "support": 7.0
   },
   "CHAIR": {
-    "precision": 0.4666666666666667,
-    "recall": 1.0,
-    "f1-score": 0.6363636363636364,
+    "precision": 0.625,
+    "recall": 0.7142857142857143,
+    "f1-score": 0.6666666666666666,
     "support": 7.0
   },
   "CLOTHES": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 8.0
+    "support": 7.0
   },
   "COLD": {
     "precision": 1.0,
@@ -57,12 +57,12 @@
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 7.0
+    "support": 8.0
   },
   "COMPUTER": {
-    "precision": 0.0,
-    "recall": 0.0,
-    "f1-score": 0.0,
+    "precision": 0.5,
+    "recall": 1.0,
+    "f1-score": 0.6666666666666666,
     "support": 8.0
   },
   "CORRECT": {
@@ -84,10 +84,10 @@
     "support": 7.0
   },
   "DANGER": {
-    "precision": 0.4,
-    "recall": 0.25,
-    "f1-score": 0.3076923076923077,
-    "support": 8.0
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1-score": 0.0,
+    "support": 7.0
   },
   "DRINK": {
     "precision": 1.0,
@@ -99,18 +99,18 @@
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 7.0
+    "support": 8.0
   },
   "FAMILY": {
     "precision": 0.5,
-    "recall": 0.8571428571428571,
-    "f1-score": 0.631578947368421,
+    "recall": 0.7142857142857143,
+    "f1-score": 0.5882352941176471,
     "support": 7.0
   },
   "FATHER": {
-    "precision": 0.5333333333333333,
+    "precision": 0.5,
     "recall": 1.0,
-    "f1-score": 0.6956521739130435,
+    "f1-score": 0.6666666666666666,
     "support": 8.0
   },
   "FINE": {
@@ -126,15 +126,15 @@
     "support": 8.0
   },
   "FRIEND": {
-    "precision": 0.5454545454545454,
-    "recall": 0.75,
-    "f1-score": 0.631578947368421,
+    "precision": 0.3333333333333333,
+    "recall": 0.25,
+    "f1-score": 0.2857142857142857,
     "support": 8.0
   },
   "GIVE": {
-    "precision": 0.5454545454545454,
-    "recall": 0.75,
-    "f1-score": 0.631578947368421,
+    "precision": 0.5,
+    "recall": 1.0,
+    "f1-score": 0.6666666666666666,
     "support": 8.0
   },
   "GO": {
@@ -147,19 +147,19 @@
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 7.0
+    "support": 8.0
   },
   "GOODBYE": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 8.0
+    "support": 21.0
   },
   "HAPPY": {
     "precision": 0.0,
     "recall": 0.0,
     "f1-score": 0.0,
-    "support": 7.0
+    "support": 8.0
   },
   "HELLO": {
     "precision": 1.0,
@@ -174,46 +174,46 @@
     "support": 21.0
   },
   "HOT": {
-    "precision": 0.0,
-    "recall": 0.0,
-    "f1-score": 0.0,
-    "support": 8.0
+    "precision": 0.4666666666666667,
+    "recall": 1.0,
+    "f1-score": 0.6363636363636364,
+    "support": 7.0
   },
   "HURT": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 8.0
+    "support": 7.0
   },
   "LIKE": {
-    "precision": 0.5,
-    "recall": 1.0,
-    "f1-score": 0.6666666666666666,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1-score": 0.0,
     "support": 8.0
   },
   "LOVE": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 7.0
+    "support": 8.0
   },
   "MAN": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 8.0
+    "support": 7.0
   },
   "MOTHER": {
-    "precision": 0.5,
-    "recall": 1.0,
-    "f1-score": 0.6666666666666666,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1-score": 0.0,
     "support": 7.0
   },
   "NEED": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 7.0
+    "support": 8.0
   },
   "NO": {
     "precision": 1.0,
@@ -225,19 +225,19 @@
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 7.0
+    "support": 8.0
   },
   "PHONE": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 8.0
+    "support": 7.0
   },
   "PLAY": {
     "precision": 0.0,
     "recall": 0.0,
     "f1-score": 0.0,
-    "support": 7.0
+    "support": 8.0
   },
   "PLEASE": {
     "precision": 1.0,
@@ -249,18 +249,18 @@
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 8.0
+    "support": 7.0
   },
   "SAD": {
-    "precision": 0.6,
-    "recall": 0.375,
-    "f1-score": 0.46153846153846156,
+    "precision": 0.4,
+    "recall": 0.5,
+    "f1-score": 0.4444444444444444,
     "support": 8.0
   },
   "SEE": {
-    "precision": 0.0,
-    "recall": 0.0,
-    "f1-score": 0.0,
+    "precision": 0.7142857142857143,
+    "recall": 0.625,
+    "f1-score": 0.6666666666666666,
     "support": 8.0
   },
   "SLEEP": {
@@ -285,7 +285,7 @@
     "precision": 0.5,
     "recall": 1.0,
     "f1-score": 0.6666666666666666,
-    "support": 7.0
+    "support": 8.0
   },
   "THANK YOU": {
     "precision": 1.0,
@@ -300,40 +300,40 @@
     "support": 7.0
   },
   "WALK": {
-    "precision": 0.5,
-    "recall": 1.0,
-    "f1-score": 0.6666666666666666,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1-score": 0.0,
     "support": 8.0
   },
   "WATER": {
-    "precision": 0.45454545454545453,
-    "recall": 0.625,
-    "f1-score": 0.5263157894736842,
-    "support": 8.0
+    "precision": 0.5,
+    "recall": 1.0,
+    "f1-score": 0.6666666666666666,
+    "support": 7.0
   },
   "WELCOME": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 7.0
+    "support": 8.0
   },
   "WHITE": {
     "precision": 1.0,
     "recall": 1.0,
     "f1-score": 1.0,
-    "support": 8.0
+    "support": 7.0
   },
   "WOMAN": {
     "precision": 0.5,
-    "recall": 0.14285714285714285,
-    "f1-score": 0.2222222222222222,
+    "recall": 0.2857142857142857,
+    "f1-score": 0.36363636363636365,
     "support": 7.0
   },
   "WRONG": {
-    "precision": 0.0,
-    "recall": 0.0,
-    "f1-score": 0.0,
-    "support": 7.0
+    "precision": 0.5333333333333333,
+    "recall": 1.0,
+    "f1-score": 0.6956521739130435,
+    "support": 8.0
   },
   "YELLOW": {
     "precision": 1.0,
@@ -347,17 +347,17 @@
     "f1-score": 1.0,
     "support": 21.0
   },
-  "accuracy": 0.8546511627906976,
+  "accuracy": 0.8566037735849057,
   "macro avg": {
-    "precision": 0.7783699059561128,
-    "recall": 0.8297413793103449,
-    "f1-score": 0.7909090786467887,
-    "support": 516.0
+    "precision": 0.7684934318555009,
+    "recall": 0.8291256157635468,
+    "f1-score": 0.7875984976699326,
+    "support": 530.0
   },
   "weighted avg": {
-    "precision": 0.8114282358468404,
-    "recall": 0.8546511627906976,
-    "f1-score": 0.8220122371178727,
-    "support": 516.0
+    "precision": 0.8056401617250674,
+    "recall": 0.8566037735849057,
+    "f1-score": 0.8217436496064108,
+    "support": 530.0
   }
 }

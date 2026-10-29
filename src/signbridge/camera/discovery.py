@@ -1,6 +1,7 @@
 """Module 2: Camera Device Detection & Enumeration."""
 
 import os
+import sys
 from typing import Optional
 import cv2
 
@@ -34,50 +35,65 @@ def list_available_cameras(
     available: list[CameraDeviceInfo] = []
     consecutive_fails = 0
 
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            ctypes.windll.ole32.CoInitialize(None)
+        except Exception:
+            pass
+
     logger.info("Scanning for camera devices (probing up to index %d)...", max_devices - 1)
 
-    for index in range(max_devices):
-        try:
-            cap = cv2.VideoCapture(index, selected_backend)
-            if not cap.isOpened():
-                # Fallback probe with CAP_ANY if specific backend failed
-                if selected_backend != cv2.CAP_ANY:
-                    cap.release()
-                    cap = cv2.VideoCapture(index, cv2.CAP_ANY)
+    try:
+        for index in range(max_devices):
+            cap = None
+            try:
+                cap = cv2.VideoCapture(index, selected_backend)
+                if cap is not None and cap.isOpened():
+                    ret, frame = cap.read()
+                    if ret and frame is not None:
+                        w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                        h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                        fps = float(cap.get(cv2.CAP_PROP_FPS))
+                        backend_name = cap.getBackendName()
 
-            if cap.isOpened():
-                ret, frame = cap.read()
-                if ret and frame is not None:
-                    w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                    h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                    fps = float(cap.get(cv2.CAP_PROP_FPS))
-                    backend_name = cap.getBackendName()
-
-                    info = CameraDeviceInfo(
-                        index=index,
-                        name=f"Camera Device {index} ({backend_name})",
-                        is_available=True,
-                        default_width=w if w > 0 else frame.shape[1],
-                        default_height=h if h > 0 else frame.shape[0],
-                        default_fps=fps if fps > 0 else 30.0,
-                        backend_name=backend_name,
-                    )
-                    available.append(info)
-                    logger.info("Found active camera: %s [%dx%d @ %.1f FPS]", info.name, info.default_width, info.default_height, info.default_fps)
-                    consecutive_fails = 0
+                        info = CameraDeviceInfo(
+                            index=index,
+                            name=f"Camera Device {index} ({backend_name})",
+                            is_available=True,
+                            default_width=w if w > 0 else frame.shape[1],
+                            default_height=h if h > 0 else frame.shape[0],
+                            default_fps=fps if fps > 0 else 30.0,
+                            backend_name=backend_name,
+                        )
+                        available.append(info)
+                        logger.info("Found active camera: %s [%dx%d @ %.1f FPS]", info.name, info.default_width, info.default_height, info.default_fps)
+                        consecutive_fails = 0
+                    else:
+                        consecutive_fails += 1
                 else:
                     consecutive_fails += 1
-                cap.release()
-            else:
+
+                if consecutive_fails >= consecutive_fail_limit:
+                    logger.debug("Stopping scan after %d consecutive inactive camera indices.", consecutive_fails)
+                    break
+
+            except Exception as err:
+                logger.warning("Error probing camera index %d: %s", index, err)
                 consecutive_fails += 1
-
-            if consecutive_fails >= consecutive_fail_limit:
-                logger.debug("Stopping scan after %d consecutive inactive camera indices.", consecutive_fails)
-                break
-
-        except Exception as err:
-            logger.warning("Error probing camera index %d: %s", index, err)
-            consecutive_fails += 1
+            finally:
+                if cap is not None:
+                    try:
+                        cap.release()
+                    except Exception:
+                        pass
+    finally:
+        if sys.platform == "win32":
+            try:
+                import ctypes
+                ctypes.windll.ole32.CoUninitialize()
+            except Exception:
+                pass
 
     if not available:
         logger.warning("No functional camera devices detected on this system.")

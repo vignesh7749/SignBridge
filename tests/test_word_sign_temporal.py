@@ -106,10 +106,30 @@ def test_temporal_smoother_consensus_and_duplicate_suppression():
     assert p23.is_stable
     assert not p23.is_newly_emitted  # Suppressed by cooldown
 
-    # After cooldown expires (> 2.0 seconds later)
+    # While gesture continues to be held even after 2.5s -> holding suppression prevents duplicate spamming
     later_time = 22 * 0.033 + 2.5
     p_later = smoother.process_frame(_make_dummy_detection(50, later_time), current_time=later_time)
-    assert p_later.is_newly_emitted
+    assert not p_later.is_newly_emitted
+
+    # Neutral rest (hands lowered for 0.4s > 0.3s neutral_dwell)
+    for k in range(15):
+        smoother.process_frame(
+            HandDetectionResult(frame_id=60 + k, timestamp=later_time + (k + 1) * 0.033, hands=()),
+            current_time=later_time + (k + 1) * 0.033,
+        )
+
+    # Intentionally re-signed after neutral rest -> reaches stable count and emits!
+    re_time = later_time + 1.0
+    p_re = None
+    for k in range(3):
+        p_re = smoother.process_frame(
+            _make_dummy_detection(80 + k, re_time + k * 0.033),
+            current_time=re_time + k * 0.033,
+        )
+    assert p_re is not None
+    assert p_re.is_stable
+    assert p_re.is_newly_emitted
+    assert p_re.word == "HELP"
 
 
 def test_temporal_smoother_reset():

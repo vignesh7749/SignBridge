@@ -96,6 +96,15 @@ class UIState:
     video_filename: Optional[str] = None
     video_recognition_active: bool = True
 
+    # Demo Hub & Sign Language Reference Library State
+    demo_category: str = "All Signs"
+    demo_search_query: str = ""
+    demo_page: int = 1
+    demo_page_size: int = 5
+    demo_selected_sign_id: Optional[str] = None
+    demo_view_mode: str = "LIST"  # 'LIST' or 'DETAIL'
+    demo_search_active: bool = False
+
     # Notification Banner
     toast: Optional[NotificationToast] = None
 
@@ -116,6 +125,8 @@ class UIState:
             self.help_tab = 0
         elif modal == ActiveModal.ONBOARDING:
             self.onboarding_step = 0
+        elif modal == ActiveModal.VIDEO_DEMO:
+            self.demo_view_mode = "LIST"
 
     def close_modal(self) -> None:
         """Closes active modal dialog."""

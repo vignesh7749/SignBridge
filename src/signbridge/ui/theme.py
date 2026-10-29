@@ -54,6 +54,11 @@ class UITheme:
     font_scale_body: float = 0.45
     font_scale_small: float = 0.38
     font_scale_focal: float = 1.10
+    font_size_title: int = 18
+    font_size_heading: int = 14
+    font_size_body: int = 12
+    font_size_small: int = 11
+    font_size_focal: int = 32
 
 
 # Standard Obsidian / Dark Slate Professional Theme

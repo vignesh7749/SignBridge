@@ -18,8 +18,12 @@ from signbridge.ui.components import (
     draw_card_header,
     draw_metric_pill,
     draw_progress_bar,
+    draw_rounded_rect,
     draw_status_indicator,
+    draw_text,
+    draw_vector_icon,
     hit_test,
+    scale_and_letterbox_frame,
 )
 from signbridge.ui.state import AppStatus, UIState
 from signbridge.ui.theme import UITheme
@@ -103,26 +107,16 @@ class DashboardLayout:
         cv2.rectangle(canvas, (0, 0), (w, 48), theme.header_bg, -1)
         cv2.line(canvas, (0, 48), (w, 48), theme.card_border, 1, cv2.LINE_AA)
 
-        # Brand Icon + Title
+        # Brand Icon + Title in crisp TrueType
         cv2.circle(canvas, (24, 24), 8, theme.primary_accent, -1, cv2.LINE_AA)
         cv2.circle(canvas, (24, 24), 4, theme.header_bg, -1, cv2.LINE_AA)
-
-        cv2.putText(
-            canvas,
-            "SIGNBRIDGE",
-            (38, 30),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            theme.font_scale_title,
-            theme.text_primary,
-            2,
-            cv2.LINE_AA,
-        )
+        draw_text(canvas, "SIGNBRIDGE", (38, 14), font_size=18, color=theme.text_primary, bold=True)
 
         mode_badge = "DEMO" if u_state.demo_mode else "PRO"
         draw_badge(
             canvas,
-            195,
-            15,
+            185,
+            13,
             mode_badge,
             fg_color=theme.text_dark,
             bg_color=theme.primary_accent,
@@ -133,8 +127,8 @@ class DashboardLayout:
         app_status = self._derive_app_status(p_state, u_state)
         draw_status_indicator(
             canvas,
-            255,
-            14,
+            245,
+            13,
             app_status,
             theme,
             is_speaking=p_state.is_speaking,
@@ -144,7 +138,7 @@ class DashboardLayout:
         rx = w - 16
 
         # Help Button [?]
-        btn_help_w = 64
+        btn_help_w = 68
         btn_help_x = rx - btn_help_w
         self._register_button("btn_help", btn_help_x, 10, btn_help_w, 28)
         draw_button(
@@ -162,7 +156,7 @@ class DashboardLayout:
         rx -= btn_help_w + 8
 
         # Settings Button [⚙]
-        btn_set_w = 84
+        btn_set_w = 90
         btn_set_x = rx - btn_set_w
         self._register_button("btn_settings", btn_set_x, 10, btn_set_w, 28)
         draw_button(
@@ -180,7 +174,7 @@ class DashboardLayout:
         rx -= btn_set_w + 8
 
         # Demo Videos Hub Button [📹]
-        btn_demo_w = 90
+        btn_demo_w = 96
         btn_demo_x = rx - btn_demo_w
         self._register_button("btn_video_demo", btn_demo_x, 10, btn_demo_w, 28)
         draw_button(
@@ -260,21 +254,21 @@ class DashboardLayout:
 
         self._register_button("btn_src_camera", btn_cam_x, btn_y, btn_bw, 22)
         draw_button(
-            canvas, btn_cam_x, btn_y, btn_bw, 22, "Live Camera", "C",
+            canvas, btn_cam_x, btn_y, btn_bw, 22, "Live Camera", "",
             u_state.hovered_id == "btn_src_camera", is_cam, theme,
             accent_border=is_cam,
         )
 
         self._register_button("btn_src_demo", btn_demo_x, btn_y, btn_bw, 22)
         draw_button(
-            canvas, btn_demo_x, btn_y, btn_bw, 22, "Demo Video", "V",
+            canvas, btn_demo_x, btn_y, btn_bw, 22, "Demo Video", "",
             u_state.hovered_id == "btn_src_demo", is_demo, theme,
             accent_border=is_demo,
         )
 
         self._register_button("btn_src_upload", btn_up_x, btn_y, btn_bw, 22)
         draw_button(
-            canvas, btn_up_x, btn_y, btn_bw, 22, "Upload Video", "U",
+            canvas, btn_up_x, btn_y, btn_bw, 22, "Upload Video", "",
             u_state.hovered_id == "btn_src_upload", is_upload, theme,
             accent_border=is_upload,
         )
@@ -306,8 +300,9 @@ class DashboardLayout:
             # ROW 1: Source Mode Badge
             is_demo_src = p_state.frame_source == "DEMO_VIDEO" or is_demo or is_upload
             if is_demo_src:
-                sample_name = (u_state.selected_sample_video or "DEMO").upper()
-                row1_text = f"MODE: DEMO VIDEO [{sample_name}]"
+                raw_sample = (u_state.selected_sample_video or "DEMO")
+                sample_name = raw_sample.split("/")[0].strip().upper()
+                row1_text = f"REFERENCE DEMO: [{sample_name}]"
                 draw_badge(canvas, ox + 12, oy + 12, row1_text, fg_color=theme.text_dark, bg_color=theme.primary_accent, font_scale=0.38)
             else:
                 draw_badge(canvas, ox + 12, oy + 12, "MODE: LIVE CAMERA", fg_color=theme.text_dark, bg_color=theme.secondary_accent, font_scale=0.38)
@@ -334,12 +329,19 @@ class DashboardLayout:
             if pred_tok:
                 conf_pct = int(pred_conf * 100)
                 if is_demo_src:
-                    sample_name = (u_state.selected_sample_video or "DEMO").upper()
-                    match_lbl = " [MATCH]" if pred_tok.upper() == sample_name else " [MISMATCH]"
-                    row3_text = f"PREDICTION: {pred_tok} | CONFIDENCE: {conf_pct}%{match_lbl}"
+                    raw_sample = (u_state.selected_sample_video or "DEMO")
+                    sample_name = raw_sample.split("/")[0].strip().upper()
+                    is_core_word = sample_name in ("HELLO", "HELP", "YES", "NO", "STOP", "THANK YOU")
+                    if is_core_word:
+                        match_lbl = " [MATCH]" if pred_tok.upper() == sample_name else " [MISMATCH]"
+                        row3_text = f"EVALUATION: {pred_tok} | CONF: {conf_pct}%{match_lbl}"
+                        pred_col = theme.secondary_accent if pred_tok.upper() == sample_name else theme.warning_accent
+                    else:
+                        row3_text = f"EVALUATION: {pred_tok} | CONF: {conf_pct}% [REF DEMO - UNTRAINED SIGN]"
+                        pred_col = theme.primary_accent if conf_pct >= 70 else theme.warning_accent
                 else:
                     row3_text = f"PREDICTION: {pred_tok} | CONFIDENCE: {conf_pct}%"
-                pred_col = theme.primary_accent if conf_pct >= 70 else theme.warning_accent
+                    pred_col = theme.primary_accent if conf_pct >= 70 else theme.warning_accent
                 draw_badge(canvas, ox + 12, row3_y, row3_text, pred_col, (25, 20, 16), pred_col, font_scale=0.38)
             else:
                 row3_text = "PREDICTION: WAITING... | CONFIDENCE: --"
@@ -359,56 +361,23 @@ class DashboardLayout:
                 overlay = canvas[oy : oy + nh, ox : ox + nw].copy()
                 cv2.rectangle(overlay, (0, 0), (nw, nh), (10, 10, 10), -1)
                 cv2.addWeighted(overlay, 0.70, canvas[oy : oy + nh, ox : ox + nw], 0.30, 0, canvas[oy : oy + nh, ox : ox + nw])
-                cv2.rectangle(canvas, (ox + nw // 2 - 170, oy + nh // 2 - 40), (ox + nw // 2 + 170, oy + nh // 2 + 40), theme.primary_accent, 2, cv2.LINE_AA)
-                cv2.putText(
-                    canvas,
-                    "PAUSED",
-                    (ox + nw // 2 - 60, oy + nh // 2 - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.95,
-                    theme.primary_accent,
-                    2,
-                    cv2.LINE_AA,
-                )
-                cv2.putText(
-                    canvas,
-                    "Press 'P' to resume video stream",
-                    (ox + nw // 2 - 130, oy + nh // 2 + 25),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.50,
-                    theme.text_secondary,
-                    1,
-                    cv2.LINE_AA,
-                )
+                p_box_w, p_box_h = 320, 80
+                p_bx, p_by = ox + (nw - p_box_w) // 2, oy + (nh - p_box_h) // 2
+                draw_rounded_rect(canvas, p_bx, p_by, p_box_w, p_box_h, radius=8, bg_color=(20, 16, 14), border_color=theme.primary_accent, border_width=2)
+                draw_text(canvas, "STREAM PAUSED", (p_bx + p_box_w // 2, p_by + 24), font_size=18, color=theme.primary_accent, bold=True, anchor="cc")
+                draw_text(canvas, "Press 'P' or click Pause to resume", (p_bx + p_box_w // 2, p_by + 54), font_size=12, color=theme.text_secondary, anchor="cc")
         else:
             # Camera unavailable graphic (only displayed upon sustained failure exceeding grace threshold)
-            cv2.rectangle(canvas, (vx, vy), (vx + vw, vy + vh), (18, 14, 12), -1)
+            draw_rounded_rect(canvas, vx, vy, vw, vh, radius=6, bg_color=(18, 14, 12), border_color=theme.card_border, border_width=1)
             msg_title = "PAUSED (WAITING FOR FRAME)" if p_state.is_paused else ("VIDEO READY / STOPPED" if is_video_mode else "CAMERA FEED UNAVAILABLE")
-            cv2.putText(
-                canvas,
-                msg_title,
-                (vx + vw // 2 - 150, vy + vh // 2 - 10),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.60,
-                theme.warning_accent if p_state.is_paused else theme.error_accent,
-                1,
-                cv2.LINE_AA,
-            )
+            col = theme.warning_accent if p_state.is_paused else (theme.primary_accent if is_video_mode else theme.error_accent)
+            draw_text(canvas, msg_title, (vx + vw // 2, vy + vh // 2 - 16), font_size=16, color=col, bold=True, anchor="cc")
             sub_msg = (
                 "Press 'P' or 'Play' to resume video stream"
                 if p_state.is_paused
                 else ("Select Demo Video or Click Play to Begin" if is_video_mode else "Check camera device connection or permissions")
             )
-            cv2.putText(
-                canvas,
-                sub_msg,
-                (vx + vw // 2 - 180, vy + vh // 2 + 20),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.45,
-                theme.text_muted,
-                1,
-                cv2.LINE_AA,
-            )
+            draw_text(canvas, sub_msg, (vx + vw // 2, vy + vh // 2 + 16), font_size=12, color=theme.text_muted, anchor="cc")
 
         # ---------------------------------------------------------------------
         # Video Transport & Player Controls (Rendered in Demo & Upload Mode)
@@ -418,62 +387,72 @@ class DashboardLayout:
             cv2.rectangle(canvas, (x + 10, py - 4), (x + w - 10, py + 38), (22, 18, 16), -1)
             cv2.rectangle(canvas, (x + 10, py - 4), (x + w - 10, py + 38), theme.card_border, 1, cv2.LINE_AA)
 
-            # Play, Pause, Restart, Stop buttons
-            tb_w = 64
+            # Video Navigation & Transport buttons
             tb_h = 28
             cx = x + 16
 
-            self._register_button("btn_vid_play", cx, py, tb_w, tb_h)
-            draw_button(canvas, cx, py, tb_w, tb_h, "Play", "", u_state.hovered_id == "btn_vid_play", False, theme)
-            cx += tb_w + 6
+            self._register_button("btn_vid_prev_sample", cx, py, 64, tb_h)
+            draw_button(canvas, cx, py, 64, tb_h, "Prev", "", u_state.hovered_id == "btn_vid_prev_sample", False, theme, icon="prev")
+            cx += 64 + 4
 
-            self._register_button("btn_vid_pause", cx, py, tb_w, tb_h)
-            draw_button(canvas, cx, py, tb_w, tb_h, "Pause", "", u_state.hovered_id == "btn_vid_pause", False, theme)
-            cx += tb_w + 6
+            self._register_button("btn_vid_play", cx, py, 58, tb_h)
+            draw_button(canvas, cx, py, 58, tb_h, "Play", "", u_state.hovered_id == "btn_vid_play", False, theme, icon="play")
+            cx += 58 + 4
 
-            self._register_button("btn_vid_restart", cx, py, 74, tb_h)
-            draw_button(canvas, cx, py, 74, tb_h, "Restart", "", u_state.hovered_id == "btn_vid_restart", False, theme)
-            cx += 74 + 6
+            self._register_button("btn_vid_pause", cx, py, 60, tb_h)
+            draw_button(canvas, cx, py, 60, tb_h, "Pause", "", u_state.hovered_id == "btn_vid_pause", False, theme, icon="pause")
+            cx += 60 + 4
 
-            self._register_button("btn_vid_stop", cx, py, tb_w, tb_h)
-            draw_button(canvas, cx, py, tb_w, tb_h, "Stop", "", u_state.hovered_id == "btn_vid_stop", False, theme)
-            cx += tb_w + 14
+            self._register_button("btn_vid_restart", cx, py, 68, tb_h)
+            draw_button(canvas, cx, py, 68, tb_h, "Restart", "", u_state.hovered_id == "btn_vid_restart", False, theme, icon="replay")
+            cx += 68 + 4
 
-            # Status / Detection Telemetry
-            det_label = p_state.active_word_sign or p_state.stable_token or p_state.predicted_label or "—"
-            conf_pct = int((p_state.word_sign_confidence or p_state.prediction_confidence) * 100)
-            cur_sec = int(u_state.video_current_time)
-            tot_sec = int(u_state.video_duration)
-            time_str = f"{cur_sec//60:02d}:{cur_sec%60:02d} / {tot_sec//60:02d}:{tot_sec%60:02d}"
-            frame_str = f"Frame {u_state.video_current_frame}/{u_state.video_total_frames}" if u_state.video_total_frames > 0 else ""
+            self._register_button("btn_vid_stop", cx, py, 58, tb_h)
+            draw_button(canvas, cx, py, 58, tb_h, "Stop", "", u_state.hovered_id == "btn_vid_stop", False, theme, icon="stop")
+            cx += 58 + 4
 
-            telem_parts = []
-            if frame_str:
-                telem_parts.append(f"{frame_str} ({time_str})")
-            telem_parts.append(f"Sign: [{det_label}]")
-            telem_parts.append(f"Conf: [{conf_pct}%]")
-            telem_str = " | ".join(telem_parts)
-
-            cv2.putText(
-                canvas,
-                telem_str,
-                (cx, py + 18),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.43,
-                theme.secondary_accent if conf_pct >= 75 else theme.text_secondary,
-                1,
-                cv2.LINE_AA,
-            )
+            self._register_button("btn_vid_next_sample", cx, py, 64, tb_h)
+            draw_button(canvas, cx, py, 64, tb_h, "Next", "", u_state.hovered_id == "btn_vid_next_sample", False, theme, icon="next")
+            cx += 64 + 8
 
             # RUN RECOGNITION button on the right
             rec_bw = 145
             rec_bx = x + w - rec_bw - 18
             self._register_button("btn_vid_run_rec", rec_bx, py, rec_bw, tb_h)
             draw_button(
-                canvas, rec_bx, py, rec_bw, tb_h, "Run Recognition", "R",
+                canvas, rec_bx, py, rec_bw, tb_h, "Run Recognition", "",
                 u_state.hovered_id == "btn_vid_run_rec", False, theme,
                 accent_border=True,
             )
+
+            # Responsive Status / Detection Telemetry between transport buttons and run button
+            avail_telem_w = rec_bx - cx - 12
+            if avail_telem_w >= 80:
+                det_label = p_state.active_word_sign or p_state.stable_token or p_state.predicted_label or "—"
+                conf_pct = int((p_state.word_sign_confidence or p_state.prediction_confidence) * 100)
+                cur_sec = int(u_state.video_current_time)
+                tot_sec = int(u_state.video_duration)
+                time_str = f"{cur_sec//60:02d}:{cur_sec%60:02d}/{tot_sec//60:02d}:{tot_sec%60:02d}"
+
+                if avail_telem_w >= 260:
+                    telem_str = f"{time_str} | Sign: [{det_label}] | Conf: [{conf_pct}%]"
+                elif avail_telem_w >= 160:
+                    telem_str = f"{time_str} | [{det_label}] ({conf_pct}%)"
+                else:
+                    telem_str = f"[{det_label}] {conf_pct}%"
+
+                max_chars = max(10, avail_telem_w // 7)
+                if len(telem_str) > max_chars:
+                    telem_str = telem_str[:max_chars - 3] + "..."
+
+                draw_text(
+                    canvas,
+                    telem_str,
+                    (cx, py + 7),
+                    font_size=11,
+                    color=theme.secondary_accent if conf_pct >= 75 else theme.text_secondary,
+                    bold=True,
+                )
 
     def _render_diagnostics_overlay(
         self,
@@ -486,8 +465,8 @@ class DashboardLayout:
         theme: UITheme,
     ) -> None:
         """Renders live on-screen diagnostic HUD with hand, detection, and classification telemetry."""
-        hud_w = 260
-        hud_h = 145
+        hud_w = 270
+        hud_h = 160
         hx = ox + nw - hud_w - 12
         hy = oy + 12
 
@@ -495,18 +474,9 @@ class DashboardLayout:
         if roi.size > 0:
             dark_bg = np.zeros_like(roi)
             cv2.addWeighted(roi, 0.25, dark_bg, 0.75, 0, roi)
-        cv2.rectangle(canvas, (hx, hy), (hx + hud_w, hy + hud_h), theme.primary_accent, 1, cv2.LINE_AA)
+        draw_rounded_rect(canvas, hx, hy, hud_w, hud_h, radius=6, bg_color=(20, 16, 14), border_color=theme.primary_accent, border_width=1)
 
-        cv2.putText(
-            canvas,
-            "DIAGNOSTIC HUD [G]",
-            (hx + 10, hy + 18),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.42,
-            theme.primary_accent,
-            1,
-            cv2.LINE_AA,
-        )
+        draw_text(canvas, "DIAGNOSTIC HUD [G]", (hx + 12, hy + 10), font_size=12, color=theme.primary_accent, bold=True)
 
         lines = [
             f"Hand: {p_state.handedness or 'None'}",
@@ -517,19 +487,10 @@ class DashboardLayout:
             f"Stability Dwell: {p_state.dwell_duration_ms:.0f} ms",
         ]
 
-        text_y = hy + 38
+        text_y = hy + 32
         for line in lines:
-            cv2.putText(
-                canvas,
-                line,
-                (hx + 10, text_y),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.36,
-                theme.text_primary,
-                1,
-                cv2.LINE_AA,
-            )
-            text_y += 18
+            draw_text(canvas, line, (hx + 12, text_y), font_size=11, color=theme.text_primary)
+            text_y += 19
 
     def _render_sidebar(
         self,
@@ -580,25 +541,29 @@ class DashboardLayout:
         """Renders live predicted sign, confidence bar, and dwell progress."""
         draw_card(canvas, x, y, w, h, theme.card_bg, theme.card_border, theme.border_width)
         # Mode Selection Toggles (Top Right of Card)
-        btn_mw = 58
+        btn_mw = 68
         btn_my = y + 4
-        self._register_button("btn_mode_alpha", x + w - 190, btn_my, btn_mw, 22)
+        btn_alpha_x = x + w - (btn_mw * 3) - 26
+        btn_word_x = btn_alpha_x + btn_mw + 6
+        btn_auto_x = btn_word_x + btn_mw + 6
+
+        self._register_button("btn_mode_alpha", btn_alpha_x, btn_my, btn_mw, 22)
         draw_button(
-            canvas, x + w - 190, btn_my, btn_mw, 22, "Alpha", "1",
+            canvas, btn_alpha_x, btn_my, btn_mw, 22, "Alpha", "1",
             u_state.hovered_id == "btn_mode_alpha",
             p_state.recognition_mode == "ALPHABET",
             theme,
         )
-        self._register_button("btn_mode_word", x + w - 126, btn_my, btn_mw, 22)
+        self._register_button("btn_mode_word", btn_word_x, btn_my, btn_mw, 22)
         draw_button(
-            canvas, x + w - 126, btn_my, btn_mw, 22, "Word", "2",
+            canvas, btn_word_x, btn_my, btn_mw, 22, "Word", "2",
             u_state.hovered_id == "btn_mode_word",
             p_state.recognition_mode == "WORD_SIGNS",
             theme,
         )
-        self._register_button("btn_mode_auto", x + w - 62, btn_my, btn_mw, 22)
+        self._register_button("btn_mode_auto", btn_auto_x, btn_my, btn_mw, 22)
         draw_button(
-            canvas, x + w - 62, btn_my, btn_mw, 22, "Auto", "3",
+            canvas, btn_auto_x, btn_my, btn_mw, 22, "Auto", "3",
             u_state.hovered_id == "btn_mode_auto",
             p_state.recognition_mode == "AUTO",
             theme,
@@ -611,158 +576,142 @@ class DashboardLayout:
             or u_state.active_input_source in ("DEMO", "SAMPLE")
         )
         if is_demo_mode:
-            demo_target = (u_state.selected_sample_video or "DEMO").upper()
-            cv2.putText(
+            raw_target = (u_state.selected_sample_video or "DEMO")
+            demo_target = raw_target.upper()
+            if "GOODBYE" in demo_target:
+                demo_target = "GOODBYE"
+            elif "/" in demo_target:
+                demo_target = demo_target.split("/")[0].strip()
+            draw_text(
                 canvas,
-                f"DEMO SOURCE: {demo_target}",
-                (x + 14, y + 20),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.38,
-                theme.primary_accent,
-                1,
-                cv2.LINE_AA,
+                f"SIGN RECOGNITION [DEMO: {demo_target[:14]}]",
+                (x + 14, y + 10),
+                font_size=11,
+                color=theme.primary_accent,
+                bold=True,
             )
         else:
-            cv2.putText(
+            draw_text(
                 canvas,
                 "SIGN RECOGNITION",
-                (x + 14, y + 20),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.38,
-                theme.text_secondary,
-                1,
-                cv2.LINE_AA,
+                (x + 14, y + 10),
+                font_size=11,
+                color=theme.text_secondary,
+                bold=True,
             )
 
-        # Decide what to display based on mode
-        is_word_active = (
-            p_state.recognition_mode in ("WORD_SIGNS", "AUTO")
-            and bool(p_state.active_word_sign)
-        )
-        if is_word_active:
-            pred_char = p_state.active_word_sign or "—"
-            curr_conf = p_state.word_sign_confidence
-        elif p_state.is_uncertain and p_state.hand_detected:
-            pred_char = "UNCERTAIN"
-            curr_conf = p_state.prediction_confidence
-        else:
-            pred_char = p_state.predicted_label or "—"
-            curr_conf = p_state.prediction_confidence
-
-        if is_demo_mode:
-            demo_target = (u_state.selected_sample_video or "DEMO").upper()
-            has_det = pred_char not in ("—", "UNCERTAIN")
-            is_match = has_det and (pred_char.upper() == demo_target)
-
-            bw = 148
-            bx, by, bh = x + 14, y + 36, 92
-            cv2.rectangle(canvas, (bx, by), (bx + bw, by + bh), (26, 20, 18), -1)
-
-            if not has_det:
-                border_col = theme.card_border
-                status_txt = "ANALYZING..."
-                status_col = theme.text_muted
-            elif is_match:
-                border_col = theme.secondary_accent
-                status_txt = "STATUS: MATCH"
-                status_col = theme.secondary_accent
+        # Decide what to display based on mode and validated hand detection
+        if not p_state.hand_detected:
+            pred_char = "—"
+            curr_conf = 0.0
+        elif p_state.recognition_mode == "WORD_SIGNS":
+            if p_state.active_word_sign:
+                pred_char = p_state.active_word_sign
+                curr_conf = p_state.word_sign_confidence
+            elif p_state.is_uncertain:
+                pred_char = "UNCERTAIN"
+                curr_conf = p_state.word_sign_confidence
             else:
-                border_col = theme.warning_accent
-                status_txt = "STATUS: MISMATCH"
-                status_col = theme.warning_accent
+                pred_char = "—"
+                curr_conf = 0.0
+        elif p_state.recognition_mode == "ALPHABET":
+            if p_state.is_uncertain:
+                pred_char = "UNCERTAIN"
+                curr_conf = p_state.prediction_confidence
+            else:
+                pred_char = p_state.predicted_label or "—"
+                curr_conf = p_state.prediction_confidence
+        else:  # AUTO
+            if p_state.active_word_sign:
+                pred_char = p_state.active_word_sign
+                curr_conf = p_state.word_sign_confidence
+            elif p_state.is_uncertain:
+                pred_char = "UNCERTAIN"
+                curr_conf = p_state.prediction_confidence
+            else:
+                pred_char = p_state.predicted_label or "—"
+                curr_conf = p_state.prediction_confidence
 
-            cv2.rectangle(canvas, (bx, by), (bx + bw, by + bh), border_col, 2, cv2.LINE_AA)
+        # Determine prediction card box geometry (pure text-based)
+        is_multi_char = len(pred_char) > 2
+        bw = 135 if is_multi_char else 80
+        bx, by, bh = x + 14, y + 38, 85
 
-            # Sub-labels inside card box
-            cv2.putText(
+        if pred_char == "UNCERTAIN":
+            border_col = theme.warning_accent
+            char_col = theme.warning_accent
+        elif curr_conf >= 0.75:
+            border_col = theme.secondary_accent
+            char_col = theme.primary_accent if p_state.hand_detected else theme.text_muted
+        else:
+            border_col = theme.card_border
+            char_col = theme.primary_accent if p_state.hand_detected else theme.text_muted
+
+        draw_rounded_rect(canvas, bx, by, bw, bh, radius=6, bg_color=(26, 20, 18), border_color=border_col, border_width=2)
+
+        # Display validated prediction prominently as text (clean em-dash when empty)
+        if pred_char == "—":
+            draw_text(
                 canvas,
-                f"DEMO: {demo_target}",
-                (bx + 8, by + 22),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.36,
-                theme.text_secondary,
-                1,
-                cv2.LINE_AA,
+                "—",
+                (bx + bw // 2, by + bh // 2),
+                font_size=36,
+                color=theme.text_muted,
+                bold=True,
+                anchor="cc",
             )
-            cv2.putText(
+        elif is_multi_char:
+            draw_text(
                 canvas,
-                f"DETECTED: {pred_char[:10]}",
-                (bx + 8, by + 52),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.46,
-                theme.primary_accent if has_det else theme.text_muted,
-                1,
-                cv2.LINE_AA,
-            )
-            cv2.putText(
-                canvas,
-                status_txt,
-                (bx + 8, by + 80),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.34,
-                status_col,
-                1,
-                cv2.LINE_AA,
+                pred_char[:12],
+                (bx + bw // 2, by + bh // 2),
+                font_size=16 if pred_char == "UNCERTAIN" else 18,
+                color=char_col,
+                bold=True,
+                anchor="cc",
             )
         else:
-            # Dynamic box sizing for words vs letters vs UNCERTAIN
-            is_multi_char = len(pred_char) > 2
-            bw = 125 if is_multi_char else 70
-            bx, by, bh = x + 14, y + 38, 85
-            cv2.rectangle(canvas, (bx, by), (bx + bw, by + bh), (26, 20, 18), -1)
-            if pred_char == "UNCERTAIN":
-                border_col = theme.warning_accent
-                char_col = theme.warning_accent
-            elif curr_conf >= 0.75:
-                border_col = theme.secondary_accent
-                char_col = theme.primary_accent if p_state.hand_detected else theme.text_muted
-            else:
-                border_col = theme.card_border
-                char_col = theme.primary_accent if p_state.hand_detected else theme.text_muted
-            cv2.rectangle(canvas, (bx, by), (bx + bw, by + bh), border_col, 2, cv2.LINE_AA)
-
-            if is_multi_char:
-                font_sz = 0.44 if pred_char == "UNCERTAIN" else 0.60
-                font_th = 1 if pred_char == "UNCERTAIN" else 2
-                text_x = bx + 10 if pred_char == "UNCERTAIN" else bx + 8
-                cv2.putText(
-                    canvas,
-                    pred_char[:9],
-                    (text_x, by + 52),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    font_sz,
-                    char_col,
-                    font_th,
-                    cv2.LINE_AA,
-                )
-            else:
-                cv2.putText(
-                    canvas,
-                    pred_char,
-                    (bx + 16, by + 60),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    1.4,
-                    char_col,
-                    3,
-                    cv2.LINE_AA,
-                )
+            draw_text(
+                canvas,
+                pred_char,
+                (bx + bw // 2, by + bh // 2),
+                font_size=40,
+                color=char_col,
+                bold=True,
+                anchor="cc",
+            )
 
         # Confidence & Dwell Meters
-        mx = bx + bw + 16
+        mx = bx + bw + 14
         mw = w - (mx - x) - 14
 
         # Confidence Bar
         conf_pct = int(curr_conf * 100)
-        mode_tag = f" [{p_state.recognition_mode}]"
-        cv2.putText(
+        if is_demo_mode:
+            raw_target = (u_state.selected_sample_video or "DEMO")
+            demo_target = raw_target.upper()
+            if "GOODBYE" in demo_target:
+                demo_target = "GOODBYE"
+            elif "/" in demo_target:
+                demo_target = demo_target.split("/")[0].strip()
+            is_core_word = demo_target in ("HELLO", "HELP", "YES", "NO", "STOP", "THANK YOU", "GOODBYE")
+            is_letter_demo = len(demo_target) == 1
+            if not is_core_word and not is_letter_demo:
+                mode_tag = " [REFERENCE]"
+            elif pred_char not in ("—", "UNCERTAIN"):
+                is_match = (pred_char.upper() == demo_target)
+                mode_tag = " [MATCH]" if is_match else " [MISMATCH]"
+            else:
+                mode_tag = " [DEMO]"
+        else:
+            mode_tag = f" [{p_state.recognition_mode}]"
+
+        draw_text(
             canvas,
             f"Confidence: {conf_pct}%{mode_tag}",
-            (mx, y + 54),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            theme.font_scale_small,
-            theme.text_secondary,
-            1,
-            cv2.LINE_AA,
+            (mx, y + 40),
+            font_size=11,
+            color=theme.text_secondary,
         )
 
         conf_color = (
@@ -773,7 +722,7 @@ class DashboardLayout:
         draw_progress_bar(
             canvas,
             mx,
-            y + 62,
+            y + 58,
             mw,
             10,
             curr_conf,
@@ -785,20 +734,17 @@ class DashboardLayout:
         # Temporal Dwell Bar
         dwell_pct = int(p_state.dwell_progress * 100)
         dwell_lbl = "Dwell Stability: Locked" if dwell_pct >= 100 else f"Dwell Stability: {dwell_pct}%"
-        cv2.putText(
+        draw_text(
             canvas,
             dwell_lbl,
-            (mx, y + 92),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            theme.font_scale_small,
-            theme.text_secondary,
-            1,
-            cv2.LINE_AA,
+            (mx, y + 80),
+            font_size=11,
+            color=theme.text_secondary,
         )
         draw_progress_bar(
             canvas,
             mx,
-            y + 100,
+            y + 98,
             mw,
             8,
             p_state.dwell_progress,
@@ -822,59 +768,67 @@ class DashboardLayout:
         draw_card(canvas, x, y, w, h, theme.card_bg, theme.card_border, theme.border_width)
         draw_card_header(canvas, x, y, w, "Translation Engine", theme, accent_color=theme.secondary_accent)
 
-        # Active in-flight word
-        cv2.putText(
-            canvas,
-            "ACTIVE WORD:",
-            (x + 14, y + 52),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            theme.font_scale_small,
-            theme.text_secondary,
-            1,
-            cv2.LINE_AA,
-        )
+        # Active in-flight word (currently assembled character or word)
+        draw_text(canvas, "ACTIVE WORD:", (x + 14, y + 40), font_size=11, color=theme.text_secondary, bold=True)
         word_str = p_state.current_word if p_state.current_word else "(empty)"
         word_col = theme.primary_accent if p_state.current_word else theme.text_muted
-        cv2.putText(
+        draw_text(canvas, word_str, (x + 115, y + 37), font_size=15, color=word_col, bold=True)
+
+        # Word counter reflects actual completed sentence contents
+        word_count = len(p_state.completed_words)
+        badge_txt = f"{word_count} {'WORD' if word_count == 1 else 'WORDS'}"
+        draw_badge(
             canvas,
-            word_str,
-            (x + 115, y + 54),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.65,
-            word_col,
-            2,
-            cv2.LINE_AA,
+            x + w - 100,
+            y + 6,
+            badge_txt,
+            fg_color=theme.secondary_accent,
+            bg_color=theme.card_bg,
+            border_color=theme.secondary_accent,
+            font_scale=0.34,
         )
 
-        # Full Sentence (Focal Point)
-        cv2.putText(
-            canvas,
-            "SENTENCE:",
-            (x + 14, y + 84),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            theme.font_scale_small,
-            theme.text_secondary,
-            1,
-            cv2.LINE_AA,
-        )
+        # Full Accumulated Sentence (Committed text)
+        draw_text(canvas, "SENTENCE:", (x + 14, y + 68), font_size=11, color=theme.text_secondary, bold=True)
 
-        # Sentence container box
-        sx, sy, sw, sh = x + 14, y + 92, w - 28, 55
-        cv2.rectangle(canvas, (sx, sy), (sx + sw, sy + sh), (20, 16, 14), -1)
-        cv2.rectangle(canvas, (sx, sy), (sx + sw, sy + sh), theme.card_border, 1, cv2.LINE_AA)
+        # Sentence container box with multi-line wrapping and padding
+        sx, sy, sw, sh = x + 14, y + 86, w - 28, 62
+        draw_rounded_rect(canvas, sx, sy, sw, sh, radius=6, bg_color=(20, 16, 14), border_color=theme.card_border, border_width=1)
 
-        sent_text = p_state.sentence if p_state.sentence else "Waiting for words..."
-        sent_col = theme.text_primary if p_state.sentence else theme.text_muted
-        cv2.putText(
-            canvas,
-            sent_text[:40] + ("..." if len(sent_text) > 40 else ""),
-            (sx + 10, sy + 34),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.75,
-            sent_col,
-            2,
-            cv2.LINE_AA,
-        )
+        completed_sentence = " ".join(p_state.completed_words).strip()
+        if not completed_sentence:
+            draw_text(canvas, "Awaiting sign language input...", (sx + 14, sy + 21), font_size=13, color=theme.text_muted)
+        else:
+            words = completed_sentence.split()
+            lines: list[str] = []
+            cur_line: list[str] = []
+            cur_len = 0
+            max_line_chars = max(18, (sw - 28) // 9)
+
+            for wd in words:
+                if cur_len + len(wd) + (1 if cur_line else 0) <= max_line_chars:
+                    cur_line.append(wd)
+                    cur_len += len(wd) + (1 if cur_line else 0)
+                else:
+                    if cur_line:
+                        lines.append(" ".join(cur_line))
+                    cur_line = [wd]
+                    cur_len = len(wd)
+            if cur_line:
+                lines.append(" ".join(cur_line))
+
+            if len(lines) == 1:
+                draw_text(canvas, lines[0], (sx + 14, sy + 20), font_size=17, color=theme.text_primary, bold=True)
+            elif len(lines) == 2:
+                draw_text(canvas, lines[0], (sx + 14, sy + 10), font_size=14, color=theme.text_primary, bold=True)
+                draw_text(canvas, lines[1], (sx + 14, sy + 32), font_size=14, color=theme.text_primary, bold=True)
+            else:
+                draw_text(canvas, lines[0], (sx + 14, sy + 7), font_size=12, color=theme.text_primary, bold=True)
+                draw_text(canvas, lines[1], (sx + 14, sy + 24), font_size=12, color=theme.text_primary, bold=True)
+                line3 = " ".join(lines[2:])
+                if len(line3) > max_line_chars + 4:
+                    line3 = line3[:max_line_chars + 1] + "..."
+                draw_text(canvas, line3, (sx + 14, sy + 41), font_size=12, color=theme.text_primary, bold=True)
 
     def _render_voice_card(
         self,
@@ -915,37 +869,19 @@ class DashboardLayout:
         # Status or Error banner
         if p_state.voice_status == "ERROR" or p_state.voice_error_message:
             err_msg = p_state.voice_error_message or "Voice output unavailable — no compatible Windows TTS voice was found."
-            cv2.putText(
-                canvas,
-                err_msg[:50],
-                (x + 14, y + 54),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.36,
-                theme.error_accent,
-                1,
-                cv2.LINE_AA,
-            )
+            draw_text(canvas, err_msg[:55], (x + 14, y + 42), font_size=11, color=theme.error_accent)
         else:
             last = f' "{p_state.last_spoken}"' if p_state.last_spoken else ' "—"'
-            v_info = f"Last Spoken: {last[:25]}"
-            cv2.putText(
-                canvas,
-                v_info,
-                (x + 14, y + 54),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                theme.font_scale_small,
-                theme.text_secondary,
-                1,
-                cv2.LINE_AA,
-            )
+            v_info = f"Last Spoken: {last[:30]}"
+            draw_text(canvas, v_info, (x + 14, y + 42), font_size=11, color=theme.text_secondary)
 
-        # Voice Action Buttons
+        # Voice Action Buttons with equal height (32px)
         bw = (w - 40) // 3
         bx1 = x + 14
         bx2 = bx1 + bw + 6
         bx3 = bx2 + bw + 6
         by = y + 68
-        bh = 30
+        bh = 32
 
         # Speak Button
         self._register_button("btn_speak", bx1, by, bw, bh)
@@ -1017,9 +953,9 @@ class DashboardLayout:
         draw_card(canvas, x, y, w, h, theme.card_bg, theme.card_border, theme.border_width)
         draw_card_header(canvas, x, y, w, "Quick Actions", theme)
 
-        # 2x3 Grid of Actions
+        # 2x3 Grid of Actions with equal height (32px)
         bw = (w - 36) // 2
-        bh = 30
+        bh = 32
         gap_y = 8
         gy = y + 36
 
@@ -1077,29 +1013,11 @@ class DashboardLayout:
             msg = u_state.last_action_text
             col = theme.text_secondary
 
-        cv2.putText(
-            canvas,
-            msg[:70],
-            (20, fy + 21),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            theme.font_scale_small,
-            col,
-            1,
-            cv2.LINE_AA,
-        )
+        draw_text(canvas, msg[:85], (20, fy + 8), font_size=12, color=col)
 
         # Right Side Help Hint
-        hint = "Press [H] for Help & Controls Guide  |  [Q] Quit"
-        cv2.putText(
-            canvas,
-            hint,
-            (w - 380, fy + 21),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            theme.font_scale_small - 0.04,
-            theme.text_muted,
-            1,
-            cv2.LINE_AA,
-        )
+        hint = "Press [H] Help  |  [V] Demo Hub  |  [Q] Quit"
+        draw_text(canvas, hint, (w - 20, fy + 8), font_size=12, color=theme.text_muted, anchor="rt")
 
     def _register_button(self, btn_id: str, x: int, y: int, w: int, h: int) -> None:
         self._buttons[btn_id] = (x, y, w, h)
@@ -1107,7 +1025,16 @@ class DashboardLayout:
     @staticmethod
     def _derive_app_status(p_state: PipelineRuntimeState, u_state: UIState) -> AppStatus:
         """Determines high-level AppStatus based on pipeline telemetry."""
+        if p_state.camera_status and getattr(p_state.camera_status, "name", "") == "DISCONNECTED":
+            return AppStatus.CAMERA_ERROR
         if p_state.error_state:
+            err_lower = p_state.error_state.lower()
+            if any(k in err_lower for k in ("camera", "device", "capture", "disconnected", "webcam")):
+                return AppStatus.CAMERA_ERROR
+            elif any(k in err_lower for k in ("voice", "tts", "audio", "speech", "sapi")):
+                return AppStatus.VOICE_ERROR
+            elif any(k in err_lower for k in ("model", "classifier", "inference", "feature", "landmark")):
+                return AppStatus.MODEL_ERROR
             return AppStatus.MODEL_ERROR
         if p_state.is_paused:
             return AppStatus.PAUSED

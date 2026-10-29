@@ -1,11 +1,11 @@
 {
-  "test_accuracy": 0.8546511627906976,
-  "macro_f1": 0.7909090786467887,
-  "mean_latency_ms": 0.5702201591519451,
-  "p95_latency_ms": 1.010924985166639,
+  "test_accuracy": 0.8566037735849057,
+  "macro_f1": 0.7875984976699326,
+  "mean_latency_ms": 0.6128920734209834,
+  "p95_latency_ms": 0.8426149492152034,
   "num_classes": 58,
-  "total_samples": 3440,
-  "train_samples": 2409,
-  "test_samples": 516,
-  "evaluated_at": 1793004201.3276422
+  "total_samples": 3530,
+  "train_samples": 2472,
+  "test_samples": 530,
+  "evaluated_at": 1793283253.2399092
 }

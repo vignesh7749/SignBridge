@@ -61,6 +61,76 @@
       "description": "Politeness: flat hand touches chin and extends forward",
       "duration": 1.53,
       "verified": true
+    },
+    {
+      "file": "goodbye.mp4",
+      "sign": "GOODBYE",
+      "source": "American Sign Language (ASL) Dataset (akasheroor/American-Sign-Language-Dataset)",
+      "license": "MIT License",
+      "source_url": "https://huggingface.co/datasets/akasheroor/American-Sign-Language-Dataset",
+      "description": "Parting: open hand wave at shoulder height",
+      "duration": 1.77,
+      "verified": true
+    },
+    {
+      "file": "please.mp4",
+      "sign": "PLEASE",
+      "source": "American Sign Language (ASL) Dataset (akasheroor/American-Sign-Language-Dataset)",
+      "license": "MIT License",
+      "source_url": "https://huggingface.co/datasets/akasheroor/American-Sign-Language-Dataset",
+      "description": "Politeness: flat hand rubs clockwise on chest",
+      "duration": 2.47,
+      "verified": true
+    },
+    {
+      "file": "sorry.mp4",
+      "sign": "SORRY",
+      "source": "American Sign Language (ASL) Dataset (akasheroor/American-Sign-Language-Dataset)",
+      "license": "MIT License",
+      "source_url": "https://huggingface.co/datasets/akasheroor/American-Sign-Language-Dataset",
+      "description": "Contrition: A-fist rubs clockwise on chest",
+      "duration": 1.4,
+      "verified": true
+    },
+    {
+      "file": "water.mp4",
+      "sign": "WATER",
+      "source": "American Sign Language (ASL) Dataset (akasheroor/American-Sign-Language-Dataset)",
+      "license": "MIT License",
+      "source_url": "https://huggingface.co/datasets/akasheroor/American-Sign-Language-Dataset",
+      "description": "Beverage: W-handshape index taps chin twice",
+      "duration": 4.17,
+      "verified": true
+    },
+    {
+      "file": "food.mp4",
+      "sign": "FOOD",
+      "source": "American Sign Language (ASL) Dataset (akasheroor/American-Sign-Language-Dataset)",
+      "license": "MIT License",
+      "source_url": "https://huggingface.co/datasets/akasheroor/American-Sign-Language-Dataset",
+      "description": "Nutrition: squished O-hand taps mouth",
+      "duration": 2.94,
+      "verified": true
+    },
+    {
+      "file": "more.mp4",
+      "sign": "MORE",
+      "source": "American Sign Language (ASL) Dataset (akasheroor/American-Sign-Language-Dataset)",
+      "license": "MIT License",
+      "source_url": "https://huggingface.co/datasets/akasheroor/American-Sign-Language-Dataset",
+      "description": "Quantity: flattened O fingertips tap together",
+      "duration": 1.9,
+      "verified": true
+    },
+    {
+      "file": "like.mp4",
+      "sign": "LIKE",
+      "source": "American Sign Language (ASL) Dataset (akasheroor/American-Sign-Language-Dataset)",
+      "license": "MIT License",
+      "source_url": "https://huggingface.co/datasets/akasheroor/American-Sign-Language-Dataset",
+      "description": "Affection: 8-hand pulls from chest with thumb and middle",
+      "duration": 2.0,
+      "verified": true
     }
   ]
-}
+}

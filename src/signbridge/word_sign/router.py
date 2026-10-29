@@ -121,9 +121,14 @@ class RecognitionRouter:
             )
 
         # 3. AUTO HYBRID MODE: Arbitrates between word-signs and fingerspelling
-        # Priority rule: If a word sign has high confidence (>= 0.75) and stability, favor word sign.
+        # Priority rule: If a word sign has strong confidence (>= 0.60) or stability, favor word sign.
         # Otherwise, fall back to alphabet fingerspelling.
-        if word_pred is not None and word_pred.confidence >= 0.75 and (word_pred.is_stable or word_pred.is_newly_emitted):
+        has_word_signal = (
+            word_pred is not None
+            and bool(word_pred.word)
+            and (word_pred.confidence >= 0.60 or word_pred.is_stable or word_pred.is_newly_emitted)
+        )
+        if has_word_signal:
             return RoutedRecognitionResult(
                 mode=RecognitionMode.AUTO,
                 token=word_pred.word if word_pred.is_newly_emitted else None,
@@ -142,7 +147,7 @@ class RecognitionRouter:
             is_word=False,
             confidence=alphabet_confidence,
             is_newly_emitted=alphabet_is_emitted,
-            active_symbol=alphabet_token_candidate or (word_pred.word if word_pred and word_pred.confidence > 0.4 else ""),
+            active_symbol=alphabet_token_candidate or "",
             word_prediction=word_pred,
             metadata={"engine": "alphabet_auto_fallback"},
         )

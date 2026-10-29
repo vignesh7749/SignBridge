@@ -26,6 +26,7 @@ DEFAULT_MIN_CONFIDENCE: float = 0.75
 DEFAULT_STABLE_COUNT: int = 3
 DEFAULT_COOLDOWN_SECONDS: float = 2.0
 DEFAULT_WINDOW_FRAMES: int = 30
+DEFAULT_NEUTRAL_DWELL_SECONDS: float = 0.3
 
 
 @dataclass(frozen=True)
@@ -43,7 +44,8 @@ class WordSignTemporalSmoother:
     """Temporal buffer and stabilization engine for word-level ASL recognition.
 
     Maintains a rolling window of multi-hand frame features, triggers sequence inference,
-    accumulates consecutive agreement, and enforces cooldown duplicate suppression.
+    accumulates consecutive agreement, and enforces active gesture hold tracking and
+    neutral-release re-arming duplicate suppression.
     """
 
     def __init__(
@@ -53,18 +55,22 @@ class WordSignTemporalSmoother:
         min_confidence: float = DEFAULT_MIN_CONFIDENCE,
         stable_count: int = DEFAULT_STABLE_COUNT,
         cooldown_seconds: float = DEFAULT_COOLDOWN_SECONDS,
+        neutral_dwell_seconds: float = DEFAULT_NEUTRAL_DWELL_SECONDS,
     ) -> None:
         self.classifier = classifier
         self.window_size = max(TARGET_SEQUENCE_LENGTH, window_size)
         self.min_confidence = min_confidence
         self.stable_count = stable_count
         self.cooldown_seconds = cooldown_seconds
+        self.neutral_dwell_seconds = neutral_dwell_seconds
 
         self._frame_buffer: deque[np.ndarray] = deque(maxlen=self.window_size)
         self._consecutive_word: Optional[str] = None
         self._consecutive_count: int = 0
         self._last_emitted_word: Optional[str] = None
         self._last_emission_time: float = 0.0
+        self._holding_emitted_word: Optional[str] = None
+        self._neutral_since: Optional[float] = None
 
     def reset(self) -> None:
         """Clears the temporal window and stabilization counters."""
@@ -73,6 +79,8 @@ class WordSignTemporalSmoother:
         self._consecutive_count = 0
         self._last_emitted_word = None
         self._last_emission_time = 0.0
+        self._holding_emitted_word = None
+        self._neutral_since = None
 
     def process_frame(
         self,
@@ -102,6 +110,8 @@ class WordSignTemporalSmoother:
         if not recent_has_hands:
             self._consecutive_count = 0
             self._consecutive_word = None
+            self._holding_emitted_word = None
+            self._neutral_since = None
             return WordSignPrediction(
                 word="",
                 confidence=0.0,
@@ -123,6 +133,17 @@ class WordSignTemporalSmoother:
         is_above_conf = pred.confidence >= self.min_confidence
         candidate_word = pred.predicted_word if is_above_conf else ""
 
+        # Track neutral dwell for re-arming held gestures
+        if not candidate_word:
+            if self._neutral_since is None:
+                self._neutral_since = now
+            elif (now - self._neutral_since) >= self.neutral_dwell_seconds:
+                self._holding_emitted_word = None
+        else:
+            self._neutral_since = None
+            if self._holding_emitted_word and candidate_word != self._holding_emitted_word:
+                self._holding_emitted_word = None
+
         if candidate_word and candidate_word == self._consecutive_word:
             self._consecutive_count += 1
         else:
@@ -136,12 +157,14 @@ class WordSignTemporalSmoother:
 
         is_newly_emitted = False
         if is_stable and self._consecutive_word:
+            is_holding = (self._consecutive_word == self._holding_emitted_word)
             in_cooldown = (
                 self._consecutive_word == self._last_emitted_word
                 and (now - self._last_emission_time) < self.cooldown_seconds
             )
-            if not in_cooldown:
+            if not is_holding and not in_cooldown:
                 is_newly_emitted = True
+                self._holding_emitted_word = self._consecutive_word
                 self._last_emitted_word = self._consecutive_word
                 self._last_emission_time = now
                 logger.info(

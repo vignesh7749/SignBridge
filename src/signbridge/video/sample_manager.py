@@ -138,6 +138,65 @@ class SampleVideoManager:
         for sample in self.list_builtin_samples():
             if sample.sign == sign_upper:
                 return sample
+
+        # Check SignLanguageCatalog for extended alphabet and category demonstrations
+        try:
+            from signbridge.video.catalog import SignLanguageCatalog
+            cat = SignLanguageCatalog()
+            entry = cat.get_sign_by_name(sign_name)
+            if entry and entry.available and entry.video:
+                full_p = entry.get_full_video_path()
+                if full_p and full_p.exists():
+                    val = validate_video_file(full_p)
+                    if val.is_valid and val.metadata:
+                        return SampleVideoRecord(
+                            file=Path(entry.video).name,
+                            sign=entry.name.upper(),
+                            source=entry.source,
+                            license=entry.license,
+                            source_url="",
+                            duration_seconds=val.metadata.duration_seconds,
+                            verified=True,
+                            is_user_sample=False,
+                            full_path=str(full_p),
+                            width=val.metadata.width,
+                            height=val.metadata.height,
+                            fps=val.metadata.fps,
+                            frame_count=val.metadata.frame_count,
+                        )
+        except Exception as e:
+            logger.debug("Failed catalog lookup for sign %s: %s", sign_name, e)
+
+        return None
+
+    def get_sample_by_id(self, sign_id: str) -> Optional[SampleVideoRecord]:
+        """Finds a demonstration sample by catalog sign ID."""
+        try:
+            from signbridge.video.catalog import SignLanguageCatalog
+            cat = SignLanguageCatalog()
+            entry = cat.get_sign_by_id(sign_id)
+            if entry and entry.available and entry.video:
+                full_p = entry.get_full_video_path()
+                if full_p and full_p.exists():
+                    val = validate_video_file(full_p)
+                    if val.is_valid and val.metadata:
+                        return SampleVideoRecord(
+                            file=Path(entry.video).name,
+                            sign=entry.name.upper(),
+                            source=entry.source,
+                            license=entry.license,
+                            source_url="",
+                            duration_seconds=val.metadata.duration_seconds,
+                            verified=True,
+                            is_user_sample=False,
+                            full_path=str(full_p),
+                            width=val.metadata.width,
+                            height=val.metadata.height,
+                            fps=val.metadata.fps,
+                            frame_count=val.metadata.frame_count,
+                        )
+        except Exception as e:
+            logger.debug("Failed catalog lookup for sign ID %s: %s", sign_id, e)
         return None
 
     # -------------------------------------------------------------------------

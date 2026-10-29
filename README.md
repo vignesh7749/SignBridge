@@ -1,7 +1,7 @@
 # SignBridge — Real-Time Sign Language Translation Suite
 
 [![Python Version](https://img.shields.io/badge/python-3.11.15-blue.svg)](https://www.python.org/downloads/release/python-31115/)
-[![Test Suite](https://img.shields.io/badge/tests-140%20passed-brightgreen.svg)](tests/)
+[![Test Suite](https://img.shields.io/badge/tests-252%20passed-brightgreen.svg)](tests/)
 [![Architecture](https://img.shields.io/badge/offline-100%25-success.svg)](docs/architecture.md)
 [![Accessibility](https://img.shields.io/badge/WCAG-AAA%20Compliant-orange.svg)](docs/stage11_ui.md)
 
@@ -32,6 +32,7 @@ SignBridge was designed to solve these engineering challenges:
 - **Dual Visual Themes**: Modern Dark Slate / Obsidian (`OBSIDIAN_THEME`) and high-visibility pure black/white/yellow 21:1 contrast (`HIGH_CONTRAST_THEME`).
 - **Dual-Input Synchronization**: 100% feature coverage accessible via both mouse point-and-click and single-key keyboard hotkeys.
 - **Automated Presentation Demo Mode**: Built-in demonstration driver (`--demo` or `[D]`) simulating complete fingerspelling sequences without requiring physical camera hardware.
+- **ASL Demo Hub & Reference Library**: Searchable reference encyclopedia (`datasets/sign_language_catalog.json`) spanning 86 signs across 7 categories (Alphabet, Numbers, Greetings, Common Words, Daily Communication, Common Phrases) with 42 verified video demonstrations, multi-page browsing, and detailed gesture mechanics guides.
 
 ---
 

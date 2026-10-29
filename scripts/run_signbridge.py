@@ -60,6 +60,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--onboarding", action="store_true", help="Display onboarding tutorial on launch")
     parser.add_argument("--headless", action="store_true", help="Run in headless verification mode (no GUI window)")
     parser.add_argument("--max-frames", type=int, default=None, help="Stop after N frames (useful for verification)")
+    parser.add_argument("--input-video", type=str, default=None, help="Path to input video file to process instead of live webcam")
+    parser.add_argument("--demo-sign", type=str, default=None, help="Name or ID of demo sign to play (e.g. HELLO, HELP, A)")
     return parser.parse_args()
 
 
@@ -107,7 +109,27 @@ def main() -> int:
         auto_reconnect=True,
     )
 
-    pipeline = SignBridgePipeline(config=pipeline_config)
+    video_source = None
+    target_sign_label = None
+    if args.input_video:
+        from signbridge.video.reader import VideoFileReader
+        video_source = VideoFileReader(args.input_video, loop=True, realtime_pacing=not args.headless)
+        target_sign_label = "INPUT_VIDEO"
+        print(f"[INPUT] Using input video: {args.input_video}")
+    elif args.demo_sign or args.demo:
+        from signbridge.video.sample_manager import SampleVideoManager
+        from signbridge.video.reader import VideoFileReader
+        mgr = SampleVideoManager()
+        sign_to_load = args.demo_sign or "HELLO"
+        rec = mgr.get_sample_by_id(sign_to_load) or mgr.get_sample_by_sign(sign_to_load)
+        if rec and rec.full_path:
+            video_source = VideoFileReader(rec.full_path, loop=True, realtime_pacing=not args.headless)
+            target_sign_label = rec.sign
+            print(f"[INPUT] Using demonstration sample: {rec.sign} ({rec.full_path})")
+
+    pipeline = SignBridgePipeline(config=pipeline_config, camera=video_source)
+    if video_source is not None:
+        pipeline.switch_to_demo_video(video_source, sign_label=target_sign_label)
 
     if not args.headless:
         # Launch Professional Desktop UI
@@ -120,6 +142,10 @@ def main() -> int:
             reduced_motion=args.reduced_motion,
             demo_mode=args.demo,
         )
+        if video_source is not None:
+            app.ui_state.active_input_source = "DEMO"
+            if target_sign_label:
+                app.ui_state.selected_sample_video = target_sign_label
         if args.onboarding:
             app.ui_state.open_modal(ActiveModal.ONBOARDING)
 
